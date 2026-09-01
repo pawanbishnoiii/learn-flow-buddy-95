@@ -42,7 +42,13 @@ function StudyModePage() {
   const [stopped, setStopped] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tick, setTick] = useState(0);
-  const [form, setForm] = useState({ subject_id: "", subject_name: "", topic: "", kind: "reading" });
+  const [form, setForm] = useState({
+    subject_id: "",
+    subject_name: "",
+    topic: "",
+    kind: "reading",
+    planned_end_at: "",
+  });
   const [saveForm, setSaveForm] = useState({ topic: "", notes: "" });
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchY = useRef<number | null>(null);
