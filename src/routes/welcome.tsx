@@ -144,6 +144,58 @@ function LandingPage() {
           yoyo: true,
           ease: "sine.inOut",
         });
+
+        // 13 — headings blur-in on scroll
+        gsap.utils.toArray<HTMLElement>("h2").forEach((el) => {
+          gsap.from(el, {
+            y: 26,
+            opacity: 0,
+            filter: "blur(10px)",
+            duration: 0.75,
+            ease: "power3.out",
+            scrollTrigger: { trigger: el, start: "top 90%" },
+          });
+        });
+
+        // 14 — alternating side-slide for feature cards
+        gsap.utils.toArray<HTMLElement>(".card-grid").forEach((grid) => {
+          gsap.from(grid.children, {
+            xPercent: (i) => (i % 2 === 0 ? -6 : 6),
+            duration: 0.9,
+            ease: "power2.out",
+            scrollTrigger: { trigger: grid, start: "top 88%" },
+          });
+        });
+
+        // 15 — showcase image rotates subtly while scrubbing
+        gsap.fromTo(
+          ".pin-art",
+          { rotate: -1.2 },
+          {
+            rotate: 1.2,
+            ease: "none",
+            scrollTrigger: { trigger: ".pin-section", start: "top bottom", end: "bottom top", scrub: 0.8 },
+          },
+        );
+
+        // 16 — sticky header shrinks after the hero
+        gsap.to(".site-head", {
+          paddingTop: 8,
+          paddingBottom: 8,
+          backgroundColor: "color-mix(in oklab, var(--background) 92%, transparent)",
+          ease: "none",
+          scrollTrigger: { trigger: root.current, start: "top+=120 top", end: "top+=260 top", scrub: 0.4 },
+        });
+
+        // 17 — footer fade-up
+        gsap.from("footer", {
+          opacity: 0,
+          y: 24,
+          duration: 0.7,
+          ease: "power2.out",
+          scrollTrigger: { trigger: "footer", start: "top 98%" },
+        });
+
       }, root);
     })();
     return () => {
