@@ -309,7 +309,7 @@ function TodayPage() {
             <span className="ml-1 text-sm text-muted-foreground">h</span>
           </p>
 
-          <MonthGrid perDay={perDay} />
+          <MonthGrid perDay={perDay} dailyGoal={dailyGoal} />
         </section>
 
         {/* Hourly heatmap */}
