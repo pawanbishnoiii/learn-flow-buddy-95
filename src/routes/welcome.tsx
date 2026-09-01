@@ -208,7 +208,7 @@ function LandingPage() {
     <div ref={root} className="grid-lines min-h-screen overflow-x-hidden">
       <div className="fixed inset-x-0 top-0 z-[60] h-0.5 origin-left scale-x-0 bg-brand scroll-bar" />
 
-      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-border/50 bg-background/80 px-5 pt-4 pb-3 backdrop-blur">
+      <header className="site-head fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-border/50 bg-background/70 px-5 pt-4 pb-3 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-lg bg-brand/10">
             <svg viewBox="0 0 24 24" className="size-4 text-brand" fill="none" stroke="currentColor" strokeWidth="2">
