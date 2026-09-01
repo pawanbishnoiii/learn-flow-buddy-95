@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedTargetsRouteImport } from './routes/_authenticated/targets'
 import { Route as AuthenticatedTimetableRouteImport } from './routes/_authenticated/timetable'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 
@@ -29,6 +32,21 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTargetsRoute = AuthenticatedTargetsRouteImport.update({
+  id: '/targets',
+  path: '/targets',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTimetableRoute = AuthenticatedTimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
@@ -43,12 +61,18 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/targets': typeof AuthenticatedTargetsRoute
   '/timetable': typeof AuthenticatedTimetableRoute
   '/today': typeof AuthenticatedTodayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/targets': typeof AuthenticatedTargetsRoute
   '/timetable': typeof AuthenticatedTimetableRoute
   '/today': typeof AuthenticatedTodayRoute
 }
@@ -57,19 +81,39 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/targets': typeof AuthenticatedTargetsRoute
   '/_authenticated/timetable': typeof AuthenticatedTimetableRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/timetable' | '/today'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/assistant'
+    | '/settings'
+    | '/targets'
+    | '/timetable'
+    | '/today'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/timetable' | '/today'
+  to:
+    | '/'
+    | '/auth'
+    | '/assistant'
+    | '/settings'
+    | '/targets'
+    | '/timetable'
+    | '/today'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/assistant'
+    | '/_authenticated/settings'
+    | '/_authenticated/targets'
     | '/_authenticated/timetable'
     | '/_authenticated/today'
   fileRoutesById: FileRoutesById
@@ -103,6 +147,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/targets': {
+      id: '/_authenticated/targets'
+      path: '/targets'
+      fullPath: '/targets'
+      preLoaderRoute: typeof AuthenticatedTargetsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/timetable': {
       id: '/_authenticated/timetable'
       path: '/timetable'
@@ -121,11 +186,17 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTargetsRoute: typeof AuthenticatedTargetsRoute
   AuthenticatedTimetableRoute: typeof AuthenticatedTimetableRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTargetsRoute: AuthenticatedTargetsRoute,
   AuthenticatedTimetableRoute: AuthenticatedTimetableRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
 }
