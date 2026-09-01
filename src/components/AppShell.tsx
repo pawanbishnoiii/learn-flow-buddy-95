@@ -203,7 +203,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-        </motion.div>
+        </div>
+
       </nav>
 
     </div>
