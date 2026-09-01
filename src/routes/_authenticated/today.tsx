@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from "recharts";
 import { AppShell } from "@/components/AppShell";
 import { FocusMode } from "@/components/FocusMode";
