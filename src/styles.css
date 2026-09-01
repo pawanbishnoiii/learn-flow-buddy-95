@@ -232,7 +232,7 @@
   background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
 }
 
-}
+
 
 @utility glass-panel {
   background: color-mix(in oklab, var(--panel) 78%, transparent);
