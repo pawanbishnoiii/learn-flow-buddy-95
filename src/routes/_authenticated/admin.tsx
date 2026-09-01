@@ -190,6 +190,10 @@ function AdminPage() {
           ))}
         </section>
 
+        <SiteSettings />
+
+
+
         {/* Subjects editor */}
         <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
           <h2 className="text-sm font-semibold">Subjects</h2>
