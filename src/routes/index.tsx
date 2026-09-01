@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { Icon3D } from "@/components/Icon3D";
+import BellNotify from "@/components/ui/bell-notify";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -81,8 +82,8 @@ function LandingPage() {
 
       <main className="mx-auto max-w-3xl px-5 pt-24">
         <section className="flex min-h-[85vh] flex-col items-center justify-center text-center">
-          <div className="hero-icon float">
-            <Icon3D name="clock" size={120} priority />
+          <div className="hero-icon relative h-[260px] w-full max-w-md overflow-hidden rounded-3xl">
+            <BellNotify size={300} showButton={false} rotationAmplitude={0.9} />
           </div>
           <p className="hero-line mt-8 font-mono text-[11px] tracking-[0.3em] text-brand uppercase">
             AI-powered study tracker
