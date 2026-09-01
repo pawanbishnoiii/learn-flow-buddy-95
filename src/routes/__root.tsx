@@ -125,11 +125,21 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
+          <Outlet />
+        </motion.div>
+      </AnimatePresence>
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
