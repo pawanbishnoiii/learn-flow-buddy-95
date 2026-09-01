@@ -350,16 +350,41 @@ function StudyModePage() {
                         ))
                       )}
                     </div>
-                    <button
-                      onClick={() => {
-                        setStopped(true);
-                        setSaving(true);
-                        setSaveForm({ topic: s.topic ?? "", notes: "" });
-                      }}
-                      className="h-12 w-full max-w-sm rounded-2xl bg-white/10 text-sm font-semibold text-white"
-                    >
-                      Stop
-                    </button>
+                    {nudge ? (
+                      <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-white/5 p-4 text-center">
+                        <p className="text-sm leading-relaxed text-white/85">{nudgeLine}</p>
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => setNudge(false)}
+                            className="h-12 flex-1 rounded-2xl bg-brand text-sm font-semibold text-brand-foreground"
+                          >
+                            Thodi der aur
+                          </button>
+                          <button
+                            onClick={() => {
+                              setNudge(false);
+                              setStopped(true);
+                              setSaving(true);
+                              setSaveForm({ topic: s.topic ?? "", notes: "" });
+                            }}
+                            className="h-12 flex-1 rounded-2xl border border-white/20 text-sm font-medium text-white/80"
+                          >
+                            Stop anyway
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setNudgeLine(NUDGES[Math.floor(Math.random() * NUDGES.length)] ?? NUDGES[0]!);
+                          setNudge(true);
+                          reveal();
+                        }}
+                        className="h-12 w-full max-w-sm rounded-2xl bg-white/10 text-sm font-semibold text-white"
+                      >
+                        Stop
+                      </button>
+                    )}
                     <button
                       onClick={() => navigate({ to: "/today" })}
                       className="text-[11px] text-white/35 underline"
