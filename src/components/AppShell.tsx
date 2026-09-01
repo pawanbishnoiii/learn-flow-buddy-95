@@ -9,6 +9,7 @@ const NAV = [
   { to: "/timetable", label: "Timetable", glyph: "◷" },
   { to: "/study", label: "Study", glyph: "▶" },
   { to: "/targets", label: "Targets", glyph: "◎" },
+  { to: "/history", label: "History", glyph: "◐" },
   { to: "/profile", label: "Profile", glyph: "◑" },
 ] as const;
 

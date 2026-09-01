@@ -56,6 +56,22 @@ function StudyModePage() {
   const [nudge, setNudge] = useState(false);
   const [nudgeLine, setNudgeLine] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      /* fullscreen unsupported on this device */
+    }
+  }
   const [tick, setTick] = useState(0);
   const [form, setForm] = useState({
     subject_id: "",
@@ -385,12 +401,27 @@ function StudyModePage() {
                         Stop
                       </button>
                     )}
-                    <button
-                      onClick={() => navigate({ to: "/today" })}
-                      className="text-[11px] text-white/35 underline"
-                    >
-                      Minimise — timer keeps running
-                    </button>
+                    <div className="flex w-full max-w-sm items-center justify-between gap-3 pt-1">
+                      <button
+                        onClick={() => navigate({ to: "/today" })}
+                        className="text-[11px] text-white/35 underline"
+                      >
+                        Minimise — timer keeps running
+                      </button>
+                      <button
+                        onClick={toggleFullscreen}
+                        className="flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-white/60 transition-colors hover:text-white"
+                      >
+                        <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          {isFullscreen ? (
+                            <path d="M9 3v6H3M15 21v-6h6M3 15h6v6M21 9h-6V3" />
+                          ) : (
+                            <path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" />
+                          )}
+                        </svg>
+                        {isFullscreen ? "Exit full screen" : "Full screen"}
+                      </button>
+                    </div>
                   </>
                 )}
                 <p className="pt-1 font-mono text-[9px] tracking-[0.3em] text-white/20 uppercase">
