@@ -40,7 +40,7 @@ function AssistantPage() {
   const chat = useQuery({
     queryKey: ["ai_chat"],
     queryFn: async () => {
-      const { reply } = await askStudyAi({ message: "Give me a quick study tip based on my data." });
+      const { reply } = await askStudyAi({ data: { message: "Give me a quick study tip based on my data." } });
       return [{ role: "assistant" as const, content: reply }] as ChatMessage[];
     },
     staleTime: Infinity,
@@ -49,7 +49,7 @@ function AssistantPage() {
 
   const sendM = useMutation({
     mutationFn: async (message: string) => {
-      const { reply } = await askStudyAi({ message });
+      const { reply } = await askStudyAi({ data: { message } });
       return reply;
     },
     onMutate: (message) => {
