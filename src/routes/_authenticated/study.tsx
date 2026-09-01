@@ -56,6 +56,22 @@ function StudyModePage() {
   const [nudge, setNudge] = useState(false);
   const [nudgeLine, setNudgeLine] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      /* fullscreen unsupported on this device */
+    }
+  }
   const [tick, setTick] = useState(0);
   const [form, setForm] = useState({
     subject_id: "",
