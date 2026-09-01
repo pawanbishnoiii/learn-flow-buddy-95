@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 function TimetablePage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [day, setDay] = useState<number>(new Date().getDay());
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -75,18 +76,6 @@ function TimetablePage() {
   const remove = useMutation({
     mutationFn: deleteBlock,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["blocks"] }),
-  });
-
-  const quickStart = useMutation({
-    mutationFn: (b: Block) =>
-      startSession({
-        subject_id: b.subject_id,
-        subject_name: b.title,
-        topic: null,
-        kind: b.kind === "class" ? "class" : "reading",
-      }),
-    onSuccess: () => toast.success("Timer started — open Today"),
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const all = blocks.data ?? [];
@@ -155,7 +144,7 @@ function TimetablePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => quickStart.mutate(b)}
+                        onClick={() => navigate({ to: "/study", search: { block: b.id } })}
                         className="h-8 rounded-lg border border-brand/40 px-3 text-[10px] font-semibold text-brand uppercase"
                       >
                         Start

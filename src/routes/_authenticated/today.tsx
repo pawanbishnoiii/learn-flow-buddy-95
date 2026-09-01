@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from "recharts";
 import { AppShell } from "@/components/AppShell";
 import { FocusMode } from "@/components/FocusMode";
@@ -33,6 +34,7 @@ import {
   fetchSubjects,
   fetchTargets,
   hourlyHeat,
+  localTimeToIsoToday,
   minutesInRange,
   reorderBlocks,
   subjectProgress,
@@ -149,11 +151,15 @@ function TodayPage() {
   const start = useMutation({
     mutationFn: async () => {
       const subj = (subjects.data ?? []).find((s) => s.id === form.subject_id);
+      const now = new Date();
+      const current = (blocks.data ?? []).find((b) => b.day_of_week === now.getDay() && b.start_time <= `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}` && b.end_time >= `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
+      const plannedEnd = current ? localTimeToIsoToday(current.end_time) : null;
       await startSession({
         subject_id: subj?.id ?? null,
         subject_name: subj?.name ?? form.subject_name.trim() ?? null,
         topic: form.topic.trim() || null,
         kind: form.kind,
+        planned_end_at: plannedEnd,
       });
     },
     onSuccess: async () => {
@@ -309,7 +315,13 @@ function TodayPage() {
             <span className="ml-1 text-sm text-muted-foreground">h</span>
           </p>
 
-          <MonthGrid perDay={perDay} />
+          <div className="mt-5 h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScopeChart scope={scope} sessions={all} dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} />
+            </ResponsiveContainer>
+          </div>
+
+          <MonthGrid perDay={perDay} dailyGoal={dailyGoal} />
         </section>
 
         {/* Hourly heatmap */}
@@ -681,7 +693,99 @@ function Ring({ label, done, goal }: { label: string; done: number; goal: number
   );
 }
 
-function MonthGrid({ perDay }: { perDay: Record<string, number> }) {
+function ScopeChart({
+  scope,
+  sessions,
+  dailyGoal,
+  weeklyGoal,
+}: {
+  scope: "day" | "week" | "month";
+  sessions: { started_at: string; duration_minutes: number | null }[];
+  dailyGoal: number;
+  weeklyGoal: number;
+}) {
+  if (scope === "day") {
+    const hours = Array.from({ length: 24 }, (_, i) => ({ h: String(i).padStart(2, "0") + ":00", m: 0 }));
+    for (const s of sessions) {
+      const d = new Date(s.started_at);
+      if (dayKey(d) !== dayKey(new Date())) continue;
+      const h = d.getHours();
+      hours[h]!.m += s.duration_minutes ?? 0;
+    }
+    return (
+      <BarChart data={hours}>
+        <CartesianGrid vertical={false} stroke="var(--border)" />
+        <XAxis dataKey="h" tick={{ fontSize: 9, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} interval={3} />
+        <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }} />
+        <Bar dataKey="m" fill="var(--brand)" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    );
+  }
+
+  if (scope === "week") {
+    const days = [];
+    const start = startOfWeek();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      days.push({ label: DAYS[d.getDay()], h: (perDayFromSessions(sessions, d) / 60).toFixed(1), goal: dailyGoal });
+    }
+    return (
+      <BarChart data={days}>
+        <CartesianGrid vertical={false} stroke="var(--border)" />
+        <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+        <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }} />
+        <Bar dataKey="h" fill="var(--brand)" radius={[6, 6, 0, 0]} />
+        <Line type="monotone" dataKey="goal" stroke="var(--warm)" dot={false} strokeDasharray="4 4" />
+      </BarChart>
+    );
+  }
+
+  // month
+  const weeks = [];
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  for (let w = 0; w < 5; w++) {
+    const ws = new Date(monthStart);
+    ws.setDate(ws.getDate() + w * 7);
+    const we = new Date(ws);
+    we.setDate(we.getDate() + 6);
+    if (ws > monthEnd) break;
+    let m = 0;
+    for (const s of sessions) {
+      const d = new Date(s.started_at);
+      if (d >= ws && d <= we) m += s.duration_minutes ?? 0;
+    }
+    weeks.push({ label: `W${w + 1}`, h: (m / 60).toFixed(1), goal: weeklyGoal });
+  }
+  return (
+    <AreaChart data={weeks}>
+      <defs>
+        <linearGradient id="monthFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor="var(--brand)" stopOpacity={0.35} />
+          <stop offset="95%" stopColor="var(--brand)" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <CartesianGrid vertical={false} stroke="var(--border)" />
+      <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+      <YAxis hide />
+      <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }} />
+      <Area type="monotone" dataKey="h" stroke="var(--brand)" fill="url(#monthFill)" />
+      <Line type="monotone" dataKey="goal" stroke="var(--warm)" dot={false} strokeDasharray="4 4" />
+    </AreaChart>
+  );
+}
+
+function perDayFromSessions(sessions: { started_at: string; duration_minutes: number | null }[], d: Date) {
+  let m = 0;
+  for (const s of sessions) {
+    if (dayKey(new Date(s.started_at)) === dayKey(d)) m += s.duration_minutes ?? 0;
+  }
+  return m;
+}
+
+function MonthGrid({ perDay, dailyGoal }: { perDay: Record<string, number>; dailyGoal: number }) {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
   const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -703,27 +807,44 @@ function MonthGrid({ perDay }: { perDay: Record<string, number> }) {
         {cells.map((d, i) => {
           if (!d) return <span key={`e${i}`} />;
           const mins = perDay[dayKey(d)] ?? 0;
-          const level = mins === 0 ? 0 : mins < 60 ? 1 : mins < 150 ? 2 : mins < 300 ? 3 : 4;
+          const isFuture = d > now;
           const isToday = dayKey(d) === dayKey(now);
+          const hit = mins >= dailyGoal * 60;
+          const partial = mins > 0 && !hit;
+          const bg = isFuture
+            ? "var(--accent)"
+            : hit
+              ? "color-mix(in oklab, var(--success) 65%, var(--accent))"
+              : partial
+                ? "color-mix(in oklab, var(--warning) 55%, var(--accent))"
+                : "color-mix(in oklab, var(--destructive) 45%, var(--accent))";
           return (
             <div
               key={dayKey(d)}
               title={`${d.getDate()} · ${(mins / 60).toFixed(1)}h`}
               className={`grid aspect-square place-items-center rounded-md font-mono text-[9px] transition-colors ${
-                isToday ? "outline-1 outline-brand" : ""
+                isToday ? "outline-1 -outline-offset-1 outline-brand" : ""
               }`}
               style={{
-                background:
-                  level === 0
-                    ? "var(--accent)"
-                    : `color-mix(in oklab, var(--brand) ${level * 22}%, var(--accent))`,
-                color: level > 2 ? "var(--brand-foreground)" : "var(--muted-foreground)",
+                background: bg,
+                color: hit || partial ? "var(--background)" : "var(--muted-foreground)",
               }}
             >
               {d.getDate()}
             </div>
           );
         })}
+      </div>
+      <div className="mt-3 flex items-center gap-4 font-mono text-[9px] text-muted-foreground uppercase">
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[var(--success)]" /> hit
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[var(--warning)]" /> partial
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[var(--destructive)]" /> missed
+        </span>
       </div>
     </div>
   );

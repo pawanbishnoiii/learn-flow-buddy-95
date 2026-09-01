@@ -171,6 +171,7 @@ export type Database = {
           is_running: boolean
           kind: string
           notes: string | null
+          planned_end_at: string | null
           started_at: string
           subject_id: string | null
           subject_name: string | null
@@ -187,6 +188,7 @@ export type Database = {
           is_running?: boolean
           kind?: string
           notes?: string | null
+          planned_end_at?: string | null
           started_at?: string
           subject_id?: string | null
           subject_name?: string | null
@@ -203,6 +205,7 @@ export type Database = {
           is_running?: boolean
           kind?: string
           notes?: string | null
+          planned_end_at?: string | null
           started_at?: string
           subject_id?: string | null
           subject_name?: string | null

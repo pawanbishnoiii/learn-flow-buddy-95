@@ -16,6 +16,7 @@ export type Session = {
   kind: string;
   started_at: string;
   ended_at: string | null;
+  planned_end_at: string | null;
   duration_minutes: number | null;
   is_running: boolean;
   auto_closed: boolean;
@@ -74,6 +75,13 @@ export function fmtDuration(totalSeconds: number) {
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   return [h, m, sec].map((n) => String(n).padStart(2, "0")).join(":");
+}
+
+export function localTimeToIsoToday(time: string) {
+  const [h, m] = time.split(":").map(Number);
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h ?? 0, m ?? 0);
+  return d.toISOString();
 }
 
 export function fmtHours(minutes: number) {
@@ -137,6 +145,7 @@ export async function startSession(input: {
   subject_name: string | null;
   topic: string | null;
   kind: string;
+  planned_end_at?: string | null;
 }) {
   const user_id = await uid();
   const { error } = await supabase.from("study_sessions").insert({
@@ -144,7 +153,7 @@ export async function startSession(input: {
     user_id,
     is_running: true,
     started_at: new Date().toISOString(),
-  });
+  } as any);
   if (error) throw error;
 }
 
@@ -183,6 +192,15 @@ export async function fetchBlocks(): Promise<Block[]> {
     .order("start_time");
   if (error) throw error;
   return (data ?? []) as Block[];
+}
+
+/** Returns the timetable block covering the current moment, if any. */
+export function currentBlock(blocks: Block[]) {
+  const now = new Date();
+  const hhmm = now.toTimeString().slice(0, 5);
+  return blocks.find(
+    (b) => b.day_of_week === now.getDay() && b.start_time.slice(0, 5) <= hhmm && hhmm < b.end_time.slice(0, 5),
+  );
 }
 
 export async function createBlock(input: Omit<Block, "id">) {
@@ -450,14 +468,14 @@ export async function syncIdentityToProfile() {
   const u = data.user;
   if (!u) return null;
   const meta = (u.user_metadata ?? {}) as Record<string, string | undefined>;
-  const patch: Record<string, unknown> = { id: u.id };
+  const patch: Partial<Profile> & { id: string } = { id: u.id };
   const existing = await fetchMyProfile();
-  if (!existing?.avatar_url && (meta.avatar_url || meta.picture))
-    patch.avatar_url = meta.avatar_url ?? meta.picture;
-  if (!existing?.display_name && (meta.full_name || meta.name))
-    patch.display_name = meta.full_name ?? meta.name;
-  if (!existing?.first_name && meta.given_name) patch.first_name = meta.given_name;
-  if (!existing?.last_name && meta.family_name) patch.last_name = meta.family_name;
+  if (!existing?.avatar_url && (meta["avatar_url"] || meta["picture"]))
+    patch.avatar_url = (meta["avatar_url"] ?? meta["picture"]) || null;
+  if (!existing?.display_name && (meta["full_name"] || meta["name"]))
+    patch.display_name = (meta["full_name"] ?? meta["name"]) || null;
+  if (!existing?.first_name && meta["given_name"]) patch.first_name = meta["given_name"] || null;
+  if (!existing?.last_name && meta["family_name"]) patch.last_name = meta["family_name"] || null;
   const { data: saved, error } = await supabase
     .from("profiles")
     .upsert(patch, { onConflict: "id" })

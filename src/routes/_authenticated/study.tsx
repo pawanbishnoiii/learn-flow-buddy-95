@@ -1,15 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import FlipClock from "@/components/ui/flip-clock";
 import {
+  currentBlock,
   endBreak,
   fetchBlocks,
   fetchOpenBreak,
   fetchRunningSession,
   fetchSubjects,
+  localTimeToIsoToday,
   startBreak,
   startSession,
   stopSession,
@@ -37,11 +39,18 @@ export const Route = createFileRoute("/_authenticated/study")({
 function StudyModePage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const search = useSearch({ from: "/_authenticated/study" }) as { block?: string };
   const [controls, setControls] = useState(true);
   const [stopped, setStopped] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tick, setTick] = useState(0);
-  const [form, setForm] = useState({ subject_id: "", subject_name: "", topic: "", kind: "reading" });
+  const [form, setForm] = useState({
+    subject_id: "",
+    subject_name: "",
+    topic: "",
+    kind: "reading",
+    planned_end_at: "",
+  });
   const [saveForm, setSaveForm] = useState({ topic: "", notes: "" });
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchY = useRef<number | null>(null);
@@ -63,14 +72,11 @@ function StudyModePage() {
     };
   }, []);
 
-  /** Auto-fill subject + kind from the timetable block covering the current time. */
+  /** Auto-fill subject + kind from the timetable block covering the current time or selected by URL. */
   useEffect(() => {
-    if (running.data || form.subject_id || form.subject_name) return;
-    const now = new Date();
-    const hhmm = now.toTimeString().slice(0, 5);
-    const b = (blocks.data ?? []).find(
-      (x) => x.day_of_week === now.getDay() && x.start_time.slice(0, 5) <= hhmm && hhmm < x.end_time.slice(0, 5),
-    );
+    if (running.data || form.subject_id || form.subject_name || !blocks.data) return;
+    const selected = search.block ? blocks.data.find((b) => b.id === search.block) : null;
+    const b = selected || currentBlock(blocks.data);
     if (b) {
       setForm((f) => ({
         ...f,
@@ -78,18 +84,21 @@ function StudyModePage() {
         subject_name: b.subject_id ? "" : b.title,
         kind: b.kind === "class" ? "class" : "reading",
         topic: f.topic || b.title,
+        planned_end_at: b.end_time,
       }));
     }
-  }, [blocks.data, running.data, form.subject_id, form.subject_name]);
+  }, [blocks.data, running.data, form.subject_id, form.subject_name, search.block]);
 
   const start = useMutation({
     mutationFn: async () => {
       const subj = (subjects.data ?? []).find((s) => s.id === form.subject_id);
+      const plannedEnd = form.planned_end_at ? localTimeToIsoToday(form.planned_end_at) : null;
       await startSession({
         subject_id: subj?.id ?? null,
         subject_name: subj?.name ?? (form.subject_name.trim() || "Study"),
         topic: form.topic.trim() || null,
         kind: form.kind,
+        planned_end_at: plannedEnd,
       });
     },
     onSuccess: async () => {
@@ -246,6 +255,10 @@ function StudyModePage() {
             <FlipClock seconds={elapsed} />
           </motion.div>
 
+          {s.planned_end_at ? (
+            <PlannedEndCountdown plannedEnd={s.planned_end_at} onReached={reveal} />
+          ) : null}
+
           <p className="mt-8 text-sm font-medium text-white/70">{s.subject_name ?? "Study"}</p>
           {s.topic ? <p className="mt-1 text-xs text-white/35">{s.topic}</p> : null}
 
@@ -342,3 +355,33 @@ function StudyModePage() {
     </motion.div>
   );
 }
+
+function PlannedEndCountdown({ plannedEnd, onReached }: { plannedEnd: string; onReached: () => void }) {
+  const [left, setLeft] = useState(() => Math.max(0, new Date(plannedEnd).getTime() - Date.now()));
+  const fired = useRef(false);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const remaining = Math.max(0, new Date(plannedEnd).getTime() - Date.now());
+      setLeft(remaining);
+      if (remaining === 0 && !fired.current) {
+        fired.current = true;
+        onReached();
+      }
+    }, 1000);
+    return () => clearInterval(t);
+  }, [plannedEnd, onReached]);
+
+  const m = Math.floor(left / 60000);
+  const s = Math.floor((left % 60000) / 1000);
+  if (left === 0)
+    return (
+      <p className="mt-2 animate-pulse font-mono text-[10px] text-brand uppercase">block ended · stop to save</p>
+    );
+  return (
+    <p className="mt-2 font-mono text-[10px] text-white/40 uppercase">
+      ends in {String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
+    </p>
+  );
+}
+
