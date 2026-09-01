@@ -36,6 +36,8 @@ import {
   hourlyHeat,
   localTimeToIsoToday,
   minutesInRange,
+  monthlyHistory,
+  isAdmin,
   reorderBlocks,
   subjectProgress,
   startBreak,
@@ -84,6 +86,7 @@ function TodayPage() {
   const blocks = useQuery({ queryKey: ["blocks"], queryFn: fetchBlocks });
   const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
   const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
+  const admin = useQuery({ queryKey: ["is-admin"], queryFn: isAdmin });
   const motivations = useQuery({ queryKey: ["motivations"], queryFn: fetchMotivations, staleTime: 60 * 60_000 });
   const breaks = useQuery({
     queryKey: ["breaks"],
