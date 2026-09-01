@@ -94,12 +94,15 @@ function StudyModePage() {
     return () => clearInterval(t);
   }, []);
 
+  const runningId = running.data?.id ?? null;
   useEffect(() => {
+    // Only lock scrolling once the timer is live — the setup form must stay scrollable.
+    if (!runningId) return;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [runningId]);
 
   /** Auto-fill subject + kind from the timetable block covering the current time or selected by URL. */
   useEffect(() => {
@@ -207,7 +210,7 @@ function StudyModePage() {
       initial={{ opacity: 0, scale: 1.04 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
-      className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-black bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklab,var(--accent-start)_14%,transparent),transparent)] text-white"
+      className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-black bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklab,var(--accent-start)_14%,transparent),transparent)] text-white"
       onClick={reveal}
       onTouchStart={(e) => {
         touchY.current = e.touches[0]?.clientY ?? null;
