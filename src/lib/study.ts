@@ -77,6 +77,13 @@ export function fmtDuration(totalSeconds: number) {
   return [h, m, sec].map((n) => String(n).padStart(2, "0")).join(":");
 }
 
+export function localTimeToIsoToday(time: string) {
+  const [h, m] = time.split(":").map(Number);
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h ?? 0, m ?? 0);
+  return d.toISOString();
+}
+
 export function fmtHours(minutes: number) {
   return (minutes / 60).toFixed(1);
 }
