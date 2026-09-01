@@ -42,6 +42,8 @@ function StudyModePage() {
   const search = useSearch({ from: "/_authenticated/study" }) as { block?: string };
   const [controls, setControls] = useState(true);
   const [stopped, setStopped] = useState(false);
+  const [nudge, setNudge] = useState(false);
+  const [nudgeLine, setNudgeLine] = useState("");
   const [saving, setSaving] = useState(false);
   const [tick, setTick] = useState(0);
   const [form, setForm] = useState({
