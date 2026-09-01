@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          ai_enabled: boolean
+          banner_text: string | null
+          created_at: string
+          id: boolean
+          landing_enabled: boolean
+          maintenance_note: string | null
+          site_name: string
+          support_email: string | null
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          ai_enabled?: boolean
+          banner_text?: string | null
+          created_at?: string
+          id?: boolean
+          landing_enabled?: boolean
+          maintenance_note?: string | null
+          site_name?: string
+          support_email?: string | null
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_enabled?: boolean
+          banner_text?: string | null
+          created_at?: string
+          id?: boolean
+          landing_enabled?: boolean
+          maintenance_note?: string | null
+          site_name?: string
+          support_email?: string | null
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       motivations: {
         Row: {
           author: string | null
