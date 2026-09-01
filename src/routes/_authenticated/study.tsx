@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import FlipClock from "@/components/ui/flip-clock";
 import {
+  currentBlock,
   endBreak,
   fetchBlocks,
   fetchOpenBreak,
@@ -66,11 +67,7 @@ function StudyModePage() {
   /** Auto-fill subject + kind from the timetable block covering the current time. */
   useEffect(() => {
     if (running.data || form.subject_id || form.subject_name) return;
-    const now = new Date();
-    const hhmm = now.toTimeString().slice(0, 5);
-    const b = (blocks.data ?? []).find(
-      (x) => x.day_of_week === now.getDay() && x.start_time.slice(0, 5) <= hhmm && hhmm < x.end_time.slice(0, 5),
-    );
+    const b = currentBlock(blocks.data ?? []);
     if (b) {
       setForm((f) => ({
         ...f,
@@ -78,6 +75,7 @@ function StudyModePage() {
         subject_name: b.subject_id ? "" : b.title,
         kind: b.kind === "class" ? "class" : "reading",
         topic: f.topic || b.title,
+        planned_end_at: b.end_time,
       }));
     }
   }, [blocks.data, running.data, form.subject_id, form.subject_name]);
@@ -85,11 +83,15 @@ function StudyModePage() {
   const start = useMutation({
     mutationFn: async () => {
       const subj = (subjects.data ?? []).find((s) => s.id === form.subject_id);
+      const plannedEnd = form.planned_end_at
+        ? new Date(new Date().toDateString() + " " + form.planned_end_at).toISOString()
+        : null;
       await startSession({
         subject_id: subj?.id ?? null,
         subject_name: subj?.name ?? (form.subject_name.trim() || "Study"),
         topic: form.topic.trim() || null,
         kind: form.kind,
+        planned_end_at: plannedEnd,
       });
     },
     onSuccess: async () => {
