@@ -254,6 +254,10 @@ function StudyModePage() {
             <FlipClock seconds={elapsed} />
           </motion.div>
 
+          {s.planned_end_at ? (
+            <PlannedEndCountdown plannedEnd={s.planned_end_at} onReached={() => save.mutate()} />
+          ) : null}
+
           <p className="mt-8 text-sm font-medium text-white/70">{s.subject_name ?? "Study"}</p>
           {s.topic ? <p className="mt-1 text-xs text-white/35">{s.topic}</p> : null}
 
