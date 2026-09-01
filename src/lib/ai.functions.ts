@@ -77,7 +77,7 @@ export const getDailyInsight = createServerFn({ method: "POST" })
 
 export const askStudyAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { message: string }) => {
+  .validator((d: { message: string }) => {
     if (!d?.message?.trim()) throw new Error("Message required");
     return { message: d.message.slice(0, 2000) };
   })

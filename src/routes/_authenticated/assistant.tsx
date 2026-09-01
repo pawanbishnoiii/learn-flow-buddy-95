@@ -43,7 +43,7 @@ function AssistantPage() {
     queryKey: ["ai_chat"],
     queryFn: async () => {
       const { reply } = await askFn({ message: "Give me a quick study tip based on my data." });
-      return [{ role: "assistant" as const, content: reply }];
+      return [{ role: "assistant" as const, content: reply }] as Array<{ role: "user" | "assistant"; content: string }>;
     },
     staleTime: Infinity,
     retry: false,
