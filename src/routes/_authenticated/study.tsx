@@ -207,7 +207,7 @@ function StudyModePage() {
       initial={{ opacity: 0, scale: 1.04 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
-      className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-black text-white"
+      className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-black bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklab,var(--accent-start)_14%,transparent),transparent)] text-white"
       onClick={reveal}
       onTouchStart={(e) => {
         touchY.current = e.touches[0]?.clientY ?? null;
@@ -270,7 +270,7 @@ function StudyModePage() {
           <button
             onClick={() => start.mutate()}
             disabled={start.isPending}
-            className="mt-5 h-14 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
+            className="gradient-ring mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
           >
             {start.isPending ? "Starting…" : "Start timer"}
           </button>

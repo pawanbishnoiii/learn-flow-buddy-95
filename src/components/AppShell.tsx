@@ -50,10 +50,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border bg-background/80 px-4 pt-4 pb-3 backdrop-blur-xl sm:px-5">
+      <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border bg-background/70 px-4 pt-4 pb-3 backdrop-blur-xl sm:px-5">
         <Link to="/today" className="flex min-w-0 items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 ring-1 ring-brand/25">
-            <span className="size-3.5 rounded-[4px] bg-brand shadow-[0_0_16px_var(--brand)]" />
+          <span className="gradient-ring grid size-9 shrink-0 place-items-center rounded-xl p-[1.5px]">
+            <span className="grid size-full place-items-center rounded-[10px] bg-background">
+              <span className="gradient-ring size-3 rounded-[4px] shadow-[var(--shadow-glow)]" />
+            </span>
           </span>
           <span className="min-w-0">
             <span className="block truncate text-sm leading-none font-semibold tracking-tight">
@@ -66,9 +68,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
-          <IconLink to="/assistant" label="AI assistant">
-            <Sparkles className="size-4" />
-          </IconLink>
+          {admin.data ? (
+            <IconLink to="/assistant" label="AI assistant">
+              <Sparkles className="size-4" />
+            </IconLink>
+          ) : null}
           <IconLink to="/settings" label="Settings">
             <SettingsIcon className="size-4" />
           </IconLink>
@@ -122,14 +126,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 pb-32 lg:max-w-5xl">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 pb-36 lg:max-w-5xl">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
         <motion.div
           initial={{ y: 28, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 28 }}
-          className="mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-[26px] border border-border/70 bg-panel/70 px-2 py-2 shadow-[0_24px_60px_-30px_rgb(0_0_0/0.9)] backdrop-blur-2xl"
+          className="glass-panel mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-[26px] px-2 py-2"
         >
           {NAV.map(({ to, label, Icon, ...rest }) => {
             const active = pathname === to;
@@ -142,7 +146,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     whileTap={{ scale: 0.9 }}
                     className={`grid size-12 -translate-y-3 place-items-center rounded-2xl transition-colors duration-300 ${
                       active
-                        ? "bg-brand text-brand-foreground shadow-[0_10px_30px_-8px_var(--brand)]"
+                        ? "gradient-ring text-brand-foreground shadow-[var(--shadow-glow)]"
                         : "bg-brand/15 text-brand ring-1 ring-brand/25"
                     }`}
                   >
@@ -176,7 +180,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <motion.span
                       layoutId="nav-pill"
                       transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                      className="absolute inset-0 rounded-2xl bg-brand/15 ring-1 ring-brand/25"
+                      className="absolute inset-0 rounded-2xl bg-[linear-gradient(135deg,color-mix(in_oklab,var(--accent-start)_22%,transparent),color-mix(in_oklab,var(--accent-end)_18%,transparent))] ring-1 ring-brand/25"
                     />
                   ) : null}
                   <Icon className="relative size-[18px]" />

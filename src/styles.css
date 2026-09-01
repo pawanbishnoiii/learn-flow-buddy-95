@@ -158,3 +158,66 @@
   padding-inline: 0.75rem;
   font-size: 0.875rem;
 }
+
+/* ---------- Chronodeck cockpit layer: glass, gradients, motion ---------- */
+:root {
+  --accent-start: oklch(0.797 0.147 163.2);
+  --accent-end: oklch(0.82 0.13 200);
+  --accent-ai: oklch(0.75 0.14 295);
+  --state-hit: oklch(0.797 0.147 163.2);
+  --state-partial: oklch(0.815 0.114 78);
+  --state-missed: oklch(0.7 0.15 15);
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 8px 24px rgb(0 0 0 / 0.4);
+  --shadow-glow: 0 0 32px 4px color-mix(in oklab, var(--accent-start) 32%, transparent);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility glass-panel {
+  background: color-mix(in oklab, var(--panel) 78%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(20px) saturate(140%);
+}
+
+@utility gradient-ring {
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+}
+
+@utility num {
+  font-family: var(--font-mono-family);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+@utility breathe {
+  animation: cd-breathe 1.8s var(--ease-out) infinite alternate;
+}
+
+@keyframes cd-breathe {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent-start) 0%, transparent);
+  }
+  to {
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@utility float-soft {
+  animation: cd-float 4s ease-in-out infinite alternate;
+}
+
+@keyframes cd-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathe,
+  .float-soft {
+    animation: none !important;
+  }
+}

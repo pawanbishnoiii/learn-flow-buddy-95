@@ -130,12 +130,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AnimatePresence mode="wait" initial={false}>
+        {/* opacity-only: transforms/filters here would break `position: fixed` children (bottom nav) */}
         <motion.div
           key={pathname}
-          initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           <Outlet />
         </motion.div>

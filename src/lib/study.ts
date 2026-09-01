@@ -682,3 +682,29 @@ export async function updateAppSettings(patch: Partial<AppSettings>) {
   const { error } = await supabase.from("app_settings").update(patch).eq("id", true);
   if (error) throw error;
 }
+
+/** last N months of study hours vs a monthly goal derived from the weekly goal */
+export function monthlyHistory(sessions: Session[], weeklyGoalHours: number, months = 6) {
+  const now = new Date();
+  const out: Array<{ label: string; hours: number; goal: number; pct: number }> = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const from = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const to = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+    let minutes = 0;
+    for (const s of sessions) {
+      if (!s.duration_minutes) continue;
+      const d = new Date(s.started_at);
+      if (d >= from && d < to) minutes += s.duration_minutes;
+    }
+    const daysInMonth = new Date(from.getFullYear(), from.getMonth() + 1, 0).getDate();
+    const goal = +((weeklyGoalHours / 7) * daysInMonth).toFixed(1);
+    const hours = +(minutes / 60).toFixed(1);
+    out.push({
+      label: from.toLocaleDateString(undefined, { month: "short" }),
+      hours,
+      goal,
+      pct: goal > 0 ? Math.round((hours / goal) * 100) : 0,
+    });
+  }
+  return out;
+}

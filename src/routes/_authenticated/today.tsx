@@ -36,6 +36,8 @@ import {
   hourlyHeat,
   localTimeToIsoToday,
   minutesInRange,
+  monthlyHistory,
+  isAdmin,
   reorderBlocks,
   subjectProgress,
   startBreak,
@@ -84,6 +86,7 @@ function TodayPage() {
   const blocks = useQuery({ queryKey: ["blocks"], queryFn: fetchBlocks });
   const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
   const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
+  const admin = useQuery({ queryKey: ["is-admin"], queryFn: isAdmin });
   const motivations = useQuery({ queryKey: ["motivations"], queryFn: fetchMotivations, staleTime: 60 * 60_000 });
   const breaks = useQuery({
     queryKey: ["breaks"],
@@ -100,6 +103,7 @@ function TodayPage() {
     queryFn: () => insightFn({}),
     staleTime: 15 * 60_000,
     retry: false,
+    enabled: admin.data === true,
   });
 
   const all = sessions.data ?? [];
@@ -115,6 +119,7 @@ function TodayPage() {
   const monthMin = minutesInRange(all, monthStart);
 
   const history = useMemo(() => weeklyHistory(all, weeklyGoal), [all, weeklyGoal]);
+  const monthly = useMemo(() => monthlyHistory(all, weeklyGoal), [all, weeklyGoal]);
   const perDay = useMemo(() => dailyMinutes(all), [all]);
 
   const todayIdx = new Date().getDay();
@@ -236,7 +241,7 @@ function TodayPage() {
 
       <div className="space-y-8 px-5 py-6">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-panel p-6">
+        <section className="glass-panel relative overflow-hidden rounded-3xl p-6">
           <div className="pointer-events-none absolute -top-16 -right-10 size-52 rounded-full bg-brand/15 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
@@ -256,14 +261,14 @@ function TodayPage() {
 
           <div className="relative mt-5 h-2 overflow-hidden rounded-full bg-background">
             <div
-              className="h-full rounded-full bg-brand transition-all duration-700"
+              className="gradient-ring h-full rounded-full transition-all duration-700"
               style={{ width: `${Math.min(100, (todayMin / 60 / dailyGoal) * 100)}%` }}
             />
           </div>
 
           <button
             onClick={() => navigate({ to: "/study" })}
-            className="relative mt-5 h-14 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
+            className="gradient-ring breathe relative mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
           >
             {running.data ? "Back to running session" : "Start study"}
           </button>
@@ -276,9 +281,9 @@ function TodayPage() {
             { label: "This week", value: `${(weekMin / 60).toFixed(1)}h`, icon: "target" as const },
             { label: "This month", value: `${(monthMin / 60).toFixed(1)}h`, icon: "trophy" as const },
           ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-border bg-panel p-4">
+            <div key={s.label} className="glass-panel rounded-2xl p-4">
               <Icon3D name={s.icon} size={28} />
-              <p className="mt-3 font-mono text-lg leading-none font-semibold">{s.value}</p>
+              <p className="num mt-3 text-lg leading-none font-semibold">{s.value}</p>
               <p className="mt-1 text-[10px] tracking-wide text-muted-foreground uppercase">{s.label}</p>
             </div>
           ))}
@@ -363,7 +368,7 @@ function TodayPage() {
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background">
                     <div
-                      className="h-full rounded-full bg-brand transition-all duration-700"
+                      className="gradient-ring h-full rounded-full transition-all duration-700"
                       style={{ width: `${p.pct}%` }}
                     />
                   </div>
@@ -509,19 +514,68 @@ function TodayPage() {
           )}
         </section>
 
-        {/* AI insight */}
-        <section className="rounded-3xl border border-brand/25 bg-brand/5 p-5">
-          <div className="flex items-center gap-3">
-            <Icon3D name="brain" size={32} />
-            <h2 className="text-sm font-semibold">AI coach</h2>
-            <Link to="/assistant" className="ml-auto font-mono text-[10px] text-brand uppercase">
-              chat
-            </Link>
+        {/* Monthly progress */}
+        <section className="rounded-3xl border border-border bg-panel p-5">
+          <h2 className="text-sm font-semibold">Monthly progress</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Last 6 months of real sessions vs your pro-rated goal
+          </p>
+          <div className="mt-4 h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monthly}>
+                <defs>
+                  <linearGradient id="monthFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                />
+                <YAxis hide />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    fontSize: 12,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="var(--brand)"
+                  strokeWidth={2}
+                  fill="url(#monthFill)"
+                />
+                <Line type="monotone" dataKey="goal" stroke="var(--warm)" dot={false} strokeDasharray="4 4" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <p className="mt-3 text-sm leading-relaxed">
-            {insight.isLoading ? "Reading your study data…" : (insight.data?.insight ?? "AI is warming up.")}
+          <p className="mt-2 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+            this month {monthly.at(-1)?.hours ?? 0}h · {monthly.at(-1)?.pct ?? 0}% of goal
           </p>
         </section>
+
+        {/* AI insight — admin only */}
+        {admin.data ? (
+          <section className="rounded-3xl border border-brand/25 bg-brand/5 p-5">
+            <div className="flex items-center gap-3">
+              <Icon3D name="brain" size={32} />
+              <h2 className="text-sm font-semibold">AI coach</h2>
+              <Link to="/assistant" className="ml-auto font-mono text-[10px] text-brand uppercase">
+                chat
+              </Link>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed">
+              {insight.isLoading ? "Reading your study data…" : (insight.data?.insight ?? "AI is warming up.")}
+            </p>
+          </section>
+        ) : null}
 
         {/* Motivation + magazine */}
         <section className="grid gap-3">
