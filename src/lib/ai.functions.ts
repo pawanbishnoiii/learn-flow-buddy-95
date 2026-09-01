@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const MODEL = "google/gemini-3.7-flash";
@@ -75,12 +76,11 @@ export const getDailyInsight = createServerFn({ method: "POST" })
     return { insight: text };
   });
 
+const AskSchema = z.object({ message: z.string().min(1).max(2000) });
+
 export const askStudyAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { message: string }) => {
-    if (!d?.message?.trim()) throw new Error("Message required");
-    return { message: d.message.slice(0, 2000) };
-  })
+  .validator(AskSchema)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as unknown as Ctx;
     const ctx = await buildStudyContext({ supabase, userId });
