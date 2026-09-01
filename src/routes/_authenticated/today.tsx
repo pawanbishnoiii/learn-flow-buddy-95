@@ -103,6 +103,7 @@ function TodayPage() {
     queryFn: () => insightFn({}),
     staleTime: 15 * 60_000,
     retry: false,
+    enabled: admin.data === true,
   });
 
   const all = sessions.data ?? [];
