@@ -80,8 +80,8 @@ function HistoryPage() {
       (x) => x.is_active && (x.subject_id ? x.subject_id === s.subject_id : false),
     );
     const done = weekBySubject[s.subject_id ?? s.subject_name ?? "unknown"] ?? 0;
-    const subjectPct = t?.hours_per_week ? Math.round((done / 60 / t.hours_per_week) * 100) : null;
-    return { dayPct, subjectPct, targetHours: t?.hours_per_week ?? null };
+    const subjectPct = t?.weekly_hours ? Math.round((done / 60 / t.weekly_hours) * 100) : null;
+    return { dayPct, subjectPct, targetHours: t?.weekly_hours ?? null };
   }
 
   const invalidate = async () => {
