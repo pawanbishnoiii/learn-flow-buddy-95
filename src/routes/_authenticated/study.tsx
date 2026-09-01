@@ -17,6 +17,17 @@ import {
   stopSession,
 } from "@/lib/study";
 
+/** A single session can never exceed 8 hours. */
+const MAX_SESSION_SECONDS = 8 * 3600;
+
+const NUDGES = [
+  "Bas thodi der aur — 10 minute aur nikaal le.",
+  "Abhi rukega to kal phir zero se shuru karna padega.",
+  "Ek chapter aur. Future tu thank you bolega.",
+  "Itni jaldi thak gaya? Tere andar isse zyada dum hai.",
+  "Break lena hai to break le — par session mat maar.",
+];
+
 export const Route = createFileRoute("/_authenticated/study")({
   head: () => ({
     meta: [
@@ -42,6 +53,8 @@ function StudyModePage() {
   const search = useSearch({ from: "/_authenticated/study" }) as { block?: string };
   const [controls, setControls] = useState(true);
   const [stopped, setStopped] = useState(false);
+  const [nudge, setNudge] = useState(false);
+  const [nudgeLine, setNudgeLine] = useState("");
   const [saving, setSaving] = useState(false);
   const [tick, setTick] = useState(0);
   const [form, setForm] = useState({
@@ -161,6 +174,17 @@ function StudyModePage() {
   const s = running.data;
   const elapsed = s ? Math.max(0, Math.floor((Date.now() - new Date(s.started_at).getTime()) / 1000)) : 0;
   void tick;
+
+  // Hard cap: a single session can never run longer than 8 hours — it auto-saves itself.
+  const autoStopped = useRef(false);
+  useEffect(() => {
+    if (!s || autoStopped.current) return;
+    if (elapsed >= MAX_SESSION_SECONDS) {
+      autoStopped.current = true;
+      toast.message("8 hour limit reached — session saved automatically");
+      save.mutate();
+    }
+  }, [s, elapsed, save]);
 
   return (
     <motion.div
@@ -326,16 +350,41 @@ function StudyModePage() {
                         ))
                       )}
                     </div>
-                    <button
-                      onClick={() => {
-                        setStopped(true);
-                        setSaving(true);
-                        setSaveForm({ topic: s.topic ?? "", notes: "" });
-                      }}
-                      className="h-12 w-full max-w-sm rounded-2xl bg-white/10 text-sm font-semibold text-white"
-                    >
-                      Stop
-                    </button>
+                    {nudge ? (
+                      <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-white/5 p-4 text-center">
+                        <p className="text-sm leading-relaxed text-white/85">{nudgeLine}</p>
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => setNudge(false)}
+                            className="h-12 flex-1 rounded-2xl bg-brand text-sm font-semibold text-brand-foreground"
+                          >
+                            Thodi der aur
+                          </button>
+                          <button
+                            onClick={() => {
+                              setNudge(false);
+                              setStopped(true);
+                              setSaving(true);
+                              setSaveForm({ topic: s.topic ?? "", notes: "" });
+                            }}
+                            className="h-12 flex-1 rounded-2xl border border-white/20 text-sm font-medium text-white/80"
+                          >
+                            Stop anyway
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setNudgeLine(NUDGES[Math.floor(Math.random() * NUDGES.length)] ?? NUDGES[0]!);
+                          setNudge(true);
+                          reveal();
+                        }}
+                        className="h-12 w-full max-w-sm rounded-2xl bg-white/10 text-sm font-semibold text-white"
+                      >
+                        Stop
+                      </button>
+                    )}
                     <button
                       onClick={() => navigate({ to: "/today" })}
                       className="text-[11px] text-white/35 underline"
