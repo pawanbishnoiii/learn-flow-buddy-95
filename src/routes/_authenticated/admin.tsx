@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { Icon3D } from "@/components/Icon3D";
 import {
   DAYS,
@@ -136,15 +135,15 @@ function AdminPage() {
 
   if (admin.isLoading) {
     return (
-      <AppShell>
+      <>
         <p className="px-5 py-10 text-sm text-muted-foreground">Checking access…</p>
-      </AppShell>
+      </>
     );
   }
 
   if (!admin.data) {
     return (
-      <AppShell>
+      <>
         <div className="px-5 py-10">
           <div className="rounded-3xl border border-border bg-panel p-6">
             <Icon3D name="target" size={44} />
@@ -155,7 +154,7 @@ function AdminPage() {
             </p>
           </div>
         </div>
-      </AppShell>
+      </>
     );
   }
 
@@ -171,7 +170,7 @@ function AdminPage() {
   ];
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6 px-4 py-6 sm:px-5">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="min-w-0">
@@ -429,7 +428,7 @@ function AdminPage() {
           </button>
         </Sheet>
       ) : null}
-    </AppShell>
+    </>
   );
 }
 

@@ -1,5 +1,9 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { AppShell } from "@/components/AppShell";
+
+/** Routes that own the whole viewport and must not render the app chrome. */
+const BARE_ROUTES = ["/study", "/onboarding"];
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -18,5 +22,15 @@ export const Route = createFileRoute("/_authenticated")({
 
     return { user: data.user };
   },
-  component: () => <Outlet />,
+  component: AuthedLayout,
 });
+
+function AuthedLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (BARE_ROUTES.some((r) => pathname.startsWith(r))) return <Outlet />;
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}

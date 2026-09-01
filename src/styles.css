@@ -161,16 +161,78 @@
 
 /* ---------- Chronodeck cockpit layer: glass, gradients, motion ---------- */
 :root {
-  --accent-start: oklch(0.797 0.147 163.2);
-  --accent-end: oklch(0.82 0.13 200);
-  --accent-ai: oklch(0.75 0.14 295);
-  --state-hit: oklch(0.797 0.147 163.2);
-  --state-partial: oklch(0.815 0.114 78);
-  --state-missed: oklch(0.7 0.15 15);
-  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 8px 24px rgb(0 0 0 / 0.4);
-  --shadow-glow: 0 0 32px 4px color-mix(in oklab, var(--accent-start) 32%, transparent);
+  /* surfaces */
+  --bg-base: #0a0b0f;
+  --bg-elevated: #14161c;
+  --border-subtle: rgb(255 255 255 / 0.06);
+  --blur-glass: 20px;
+
+  /* accent */
+  --accent-start: #34d399;
+  --accent-end: #22d3ee;
+  --accent-ai: #a78bfa;
+
+  /* semantic states */
+  --state-hit: #34d399;
+  --state-partial: #fbbf24;
+  --state-missed: #fb7185;
+
+  /* text */
+  --text-primary: #f5f5f7;
+  --text-muted: #9ca3af;
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* elevation */
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px rgb(0 0 0 / 0.4);
+  --shadow-glow: 0 0 32px 4px rgb(52 211 153 / 0.35);
+
+  /* motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 0.25s;
+  --dur-base: 0.4s;
+  --dur-slow: 0.8s;
+
+  /* map core surfaces onto the new palette */
+  --background: #0a0b0f;
+  --foreground: #f5f5f7;
+  --panel: #14161c;
+  --card: #14161c;
+  --popover: #12141a;
+  --muted-foreground: #9ca3af;
+  --border: rgb(255 255 255 / 0.07);
 }
+
+@utility gradient-border {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(color-mix(in oklab, var(--panel) 88%, transparent), color-mix(in oklab, var(--panel) 88%, transparent))
+      padding-box,
+    linear-gradient(135deg, color-mix(in oklab, var(--accent-start) 55%, transparent), color-mix(in oklab, var(--accent-end) 45%, transparent))
+      border-box;
+  box-shadow: var(--shadow-card);
+}
+
+@utility gradient-text {
+  background: linear-gradient(120deg, var(--accent-start), var(--accent-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility gradient-bar {
+  background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+}
+
+
 
 @utility glass-panel {
   background: color-mix(in oklab, var(--panel) 78%, transparent);

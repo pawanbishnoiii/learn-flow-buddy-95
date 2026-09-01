@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { fetchSubjects, fetchTargets, createTarget, toggleTarget, deleteTarget } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/targets")({
@@ -59,7 +58,7 @@ function TargetsPage() {
   });
 
   return (
-    <AppShell>
+    <>
       <section className="px-5 pt-6">
         <div className="flex items-center justify-between">
           <div>
@@ -128,7 +127,7 @@ function TargetsPage() {
           onAdd={(v) => createM.mutate(v)}
         />
       )}
-    </AppShell>
+    </>
   );
 }
 

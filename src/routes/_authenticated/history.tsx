@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { Icon3D } from "@/components/Icon3D";
 import {
   deleteBreak,
@@ -170,7 +169,7 @@ function HistoryPage() {
   const breakMinutes = (breaks.data ?? []).reduce((a, b) => a + (b.duration_minutes ?? 0), 0);
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6 px-4 py-6 sm:px-5">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="min-w-0">
@@ -434,7 +433,7 @@ function HistoryPage() {
           </button>
         </Sheet>
       ) : null}
-    </AppShell>
+    </>
   );
 }
 

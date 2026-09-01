@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { isAdmin } from "@/lib/study";
 import { askStudyAi, getDailyInsight } from "@/lib/ai.functions";
 
@@ -31,14 +30,14 @@ function AssistantPage() {
 
   if (admin.isLoading) {
     return (
-      <AppShell>
+      <>
         <p className="px-5 py-8 text-sm text-muted-foreground">Checking access…</p>
-      </AppShell>
+      </>
     );
   }
   if (!admin.data) {
     return (
-      <AppShell>
+      <>
         <section className="px-5 py-10 text-center">
           <h1 className="text-lg font-semibold tracking-tight">Admin only</h1>
           <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
@@ -51,7 +50,7 @@ function AssistantPage() {
             Back to dashboard
           </Link>
         </section>
-      </AppShell>
+      </>
     );
   }
 
@@ -103,7 +102,7 @@ function AssistantChat() {
   const messages = chat.data ?? [];
 
   return (
-    <AppShell>
+    <>
       <section className="px-5 pt-6">
         <h1 className="text-xl font-semibold tracking-tight">AI Study Manager</h1>
         <p className="mt-1 text-xs text-muted-foreground">Ask about your schedule, targets or what to study next.</p>
@@ -174,6 +173,6 @@ function AssistantChat() {
           </button>
         </form>
       </div>
-    </AppShell>
+    </>
   );
 }

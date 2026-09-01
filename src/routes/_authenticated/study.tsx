@@ -20,6 +20,19 @@ import {
 /** A single session can never exceed 8 hours. */
 const MAX_SESSION_SECONDS = 8 * 3600;
 
+const SESSION_KINDS = [
+  { k: "reading", l: "Reading", d: "Books & notes", emoji: "\u{1F4D6}" },
+  { k: "class", l: "Online class", d: "Live / recorded", emoji: "\u{1F3A7}" },
+  { k: "revision", l: "Revision", d: "Recall & re-read", emoji: "\u{1F501}" },
+  { k: "practice", l: "Practice", d: "Papers & problems", emoji: "\u{270F}\u{FE0F}" },
+] as const;
+
+const BREAK_KINDS = [
+  { k: "pause", l: "Short break", emoji: "\u{2615}" },
+  { k: "sleep", l: "Power nap", emoji: "\u{1F634}" },
+  { k: "free", l: "Free time", emoji: "\u{1F3AE}" },
+] as const;
+
 const NUDGES = [
   "Bas thodi der aur — 10 minute aur nikaal le.",
   "Abhi rukega to kal phir zero se shuru karna padega.",
@@ -94,12 +107,15 @@ function StudyModePage() {
     return () => clearInterval(t);
   }, []);
 
+  const runningId = running.data?.id ?? null;
   useEffect(() => {
+    // Only lock scrolling once the timer is live — the setup form must stay scrollable.
+    if (!runningId) return;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [runningId]);
 
   /** Auto-fill subject + kind from the timetable block covering the current time or selected by URL. */
   useEffect(() => {
@@ -207,7 +223,7 @@ function StudyModePage() {
       initial={{ opacity: 0, scale: 1.04 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
-      className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-black bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklab,var(--accent-start)_14%,transparent),transparent)] text-white"
+      className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-black bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklab,var(--accent-start)_14%,transparent),transparent)] text-white"
       onClick={reveal}
       onTouchStart={(e) => {
         touchY.current = e.touches[0]?.clientY ?? null;
@@ -219,72 +235,94 @@ function StudyModePage() {
       }}
     >
       {!s ? (
-        <div className="w-full max-w-sm px-6" onClick={(e) => e.stopPropagation()}>
-          <p className="font-mono text-[10px] tracking-[0.4em] text-white/40 uppercase">study mode</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Set up your session</h1>
+        <div
+          className="my-auto w-full max-w-sm px-5 py-8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="gradient-border rounded-[24px] p-5">
+            <p className="font-mono text-[10px] tracking-[0.4em] text-white/40 uppercase">study mode</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Set up your session</h1>
+            <p className="mt-1 text-xs text-white/40">Subject chuno, category pick karo, aur timer chalao.</p>
 
-          <select
-            value={form.subject_id}
-            onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
-            className="mt-5 h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white"
-          >
-            <option value="" className="text-black">
-              Custom subject…
-            </option>
-            {(subjects.data ?? []).map((x) => (
-              <option key={x.id} value={x.id} className="text-black">
-                {x.name}
+            <label className="mt-5 block font-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">
+              subject
+            </label>
+            <select
+              value={form.subject_id}
+              onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
+              className="mt-2 h-12 w-full rounded-xl border border-white/12 bg-white/5 px-3 text-sm text-white"
+            >
+              <option value="" className="text-black">
+                Custom subject…
               </option>
-            ))}
-          </select>
-          {!form.subject_id ? (
+              {(subjects.data ?? []).map((x) => (
+                <option key={x.id} value={x.id} className="text-black">
+                  {x.name}
+                </option>
+              ))}
+            </select>
+            {!form.subject_id ? (
+              <input
+                value={form.subject_name}
+                onChange={(e) => setForm({ ...form, subject_name: e.target.value })}
+                placeholder="Subject name"
+                className="mt-2 h-12 w-full rounded-xl border border-white/12 bg-white/5 px-3 text-sm text-white placeholder:text-white/30"
+              />
+            ) : null}
             <input
-              value={form.subject_name}
-              onChange={(e) => setForm({ ...form, subject_name: e.target.value })}
-              placeholder="Subject"
-              className="mt-2 h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/30"
+              value={form.topic}
+              onChange={(e) => setForm({ ...form, topic: e.target.value })}
+              placeholder="Topic / chapter"
+              className="mt-2 h-12 w-full rounded-xl border border-white/12 bg-white/5 px-3 text-sm text-white placeholder:text-white/30"
             />
-          ) : null}
-          <input
-            value={form.topic}
-            onChange={(e) => setForm({ ...form, topic: e.target.value })}
-            placeholder="Topic / chapter"
-            className="mt-2 h-12 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/30"
-          />
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {[
-              { k: "reading", l: "Reading" },
-              { k: "class", l: "Online class" },
-            ].map((o) => (
-              <button
-                key={o.k}
-                onClick={() => setForm({ ...form, kind: o.k })}
-                className={`h-11 rounded-xl border text-sm transition-colors ${
-                  form.kind === o.k ? "border-white bg-white text-black" : "border-white/20 text-white/70"
-                }`}
-              >
-                {o.l}
-              </button>
-            ))}
+
+            <label className="mt-5 block font-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">
+              category
+            </label>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {SESSION_KINDS.map((o) => {
+                const on = form.kind === o.k;
+                return (
+                  <button
+                    key={o.k}
+                    onClick={() => setForm({ ...form, kind: o.k })}
+                    aria-pressed={on}
+                    className={`flex h-[74px] flex-col items-start justify-center gap-1 rounded-2xl border px-3 text-left transition-all duration-200 active:scale-[0.98] ${
+                      on
+                        ? "border-transparent bg-[linear-gradient(135deg,rgba(52,211,153,0.22),rgba(34,211,238,0.16))] text-white shadow-[0_0_0_1px_rgba(52,211,153,0.45)]"
+                        : "border-white/12 text-white/65 hover:border-white/25"
+                    }`}
+                  >
+                    <span className="text-lg leading-none">{o.emoji}</span>
+                    <span className="text-sm font-medium">{o.l}</span>
+                    <span className="text-[10px] text-white/40">{o.d}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => start.mutate()}
+              disabled={start.isPending}
+              className="gradient-bar mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-black shadow-[var(--shadow-glow)] transition-transform active:scale-[0.98] disabled:opacity-60"
+            >
+              {start.isPending ? "Starting…" : "Start timer"}
+            </button>
+            <button
+              onClick={() => navigate({ to: "/today" })}
+              className="mt-2 h-11 w-full rounded-2xl border border-white/12 text-sm text-white/60 transition-colors hover:text-white"
+            >
+              Back to home
+            </button>
           </div>
-          <button
-            onClick={() => start.mutate()}
-            disabled={start.isPending}
-            className="gradient-ring mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
-          >
-            {start.isPending ? "Starting…" : "Start timer"}
-          </button>
-          <button
-            onClick={() => navigate({ to: "/today" })}
-            className="mt-2 h-11 w-full rounded-2xl border border-white/15 text-sm text-white/60"
-          >
-            Back to home
-          </button>
         </div>
       ) : (
+
         <>
           <p className="font-mono text-[10px] tracking-[0.4em] text-white/35 uppercase">
-            {openBreak.data ? `on ${openBreak.data.kind}` : "focus"}
+            {openBreak.data
+              ? `on ${BREAK_KINDS.find((b) => b.k === openBreak.data?.kind)?.l ?? "break"}`
+              : "focus"}
           </p>
 
           <motion.div
@@ -355,13 +393,14 @@ function StudyModePage() {
                           Resume
                         </button>
                       ) : (
-                        ["pause", "sleep", "free"].map((k) => (
+                        BREAK_KINDS.map((b) => (
                           <button
-                            key={k}
-                            onClick={() => pause.mutate(k)}
-                            className="h-12 flex-1 rounded-2xl border border-white/20 text-sm font-medium text-white/80 capitalize"
+                            key={b.k}
+                            onClick={() => pause.mutate(b.k)}
+                            className="flex h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl border border-white/15 bg-white/[0.04] text-white/80 transition-colors hover:border-white/30 active:scale-[0.98]"
                           >
-                            {k}
+                            <span className="text-sm leading-none">{b.emoji}</span>
+                            <span className="text-[10px] font-medium">{b.l}</span>
                           </button>
                         ))
                       )}

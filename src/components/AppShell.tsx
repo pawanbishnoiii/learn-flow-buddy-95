@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarDays,
   History as HistoryIcon,
@@ -126,15 +126,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 pb-36 lg:max-w-5xl">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 pb-36 lg:max-w-5xl">
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
-        <motion.div
-          initial={{ y: 28, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 28 }}
-          className="glass-panel mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-[26px] px-2 py-2"
-        >
+      <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
+        <div className="glass-panel pointer-events-auto mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-[26px] px-2 py-2">
+
           {NAV.map(({ to, label, Icon, ...rest }) => {
             const active = pathname === to;
             const center = "center" in rest && rest.center;
@@ -195,7 +203,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-        </motion.div>
+        </div>
+
       </nav>
 
     </div>
