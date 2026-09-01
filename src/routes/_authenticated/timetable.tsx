@@ -156,7 +156,7 @@ function TimetablePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => quickStart.mutate(b)}
+                        onClick={() => navigate({ to: "/study", search: { block: b.id } })}
                         className="h-8 rounded-lg border border-brand/40 px-3 text-[10px] font-semibold text-brand uppercase"
                       >
                         Start
