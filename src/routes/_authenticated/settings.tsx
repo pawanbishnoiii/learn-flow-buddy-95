@@ -63,7 +63,7 @@ function SettingsPage() {
   });
 
   return (
-    <AppShell initials={name.slice(0, 2).toUpperCase() || "ST"}>
+    <AppShell>
       <section className="px-5 pt-6">
         <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-xs text-muted-foreground">Tune goals, AI tone and timer behaviour.</p>
