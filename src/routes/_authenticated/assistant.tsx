@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -24,17 +23,16 @@ export const Route = createFileRoute("/_authenticated/assistant")({
   component: AssistantPage,
 });
 
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
 function AssistantPage() {
   const qc = useQueryClient();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
 
-  const askFn = useServerFn(askStudyAi);
-  const insightFn = useServerFn(getDailyInsight);
-
   const insight = useQuery({
     queryKey: ["insight"],
-    queryFn: () => insightFn({}),
+    queryFn: () => getDailyInsight(),
     staleTime: 15 * 60_000,
     retry: false,
   });
@@ -42,8 +40,8 @@ function AssistantPage() {
   const chat = useQuery({
     queryKey: ["ai_chat"],
     queryFn: async () => {
-      const { reply } = await askFn({ message: "Give me a quick study tip based on my data." });
-      return [{ role: "assistant" as const, content: reply }] as Array<{ role: "user" | "assistant"; content: string }>;
+      const { reply } = await askStudyAi({ message: "Give me a quick study tip based on my data." });
+      return [{ role: "assistant" as const, content: reply }] as ChatMessage[];
     },
     staleTime: Infinity,
     retry: false,
@@ -51,7 +49,7 @@ function AssistantPage() {
 
   const sendM = useMutation({
     mutationFn: async (message: string) => {
-      const { reply } = await askFn({ message });
+      const { reply } = await askStudyAi({ message });
       return reply;
     },
     onMutate: (message) => {
@@ -59,8 +57,8 @@ function AssistantPage() {
       qc.setQueryData(["ai_chat"], [...prev, { role: "user" as const, content: message }]);
       return { prev };
     },
-    onSuccess: (reply, _message, context) => {
-      qc.setQueryData(["ai_chat"], [...(context?.prev ?? []), { role: "user", content: _message }, { role: "assistant", content: reply }]);
+    onSuccess: (reply, message, context) => {
+      qc.setQueryData(["ai_chat"], [...(context?.prev ?? []), { role: "user", content: message }, { role: "assistant", content: reply }]);
     },
     onError: (e: Error) => toast.error(e.message),
   });
