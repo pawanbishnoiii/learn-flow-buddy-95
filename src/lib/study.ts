@@ -279,7 +279,7 @@ export function weeklyLoad(sessions: Session[]) {
     if (s.is_running || !s.duration_minutes) continue;
     const d = new Date(s.started_at);
     if (d < start) continue;
-    buckets[d.getDay()] += s.duration_minutes;
+    buckets[d.getDay()] = (buckets[d.getDay()] ?? 0) + s.duration_minutes;
   }
   return buckets;
 }
