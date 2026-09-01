@@ -309,6 +309,12 @@ function TodayPage() {
             <span className="ml-1 text-sm text-muted-foreground">h</span>
           </p>
 
+          <div className="mt-5 h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScopeChart scope={scope} sessions={all} dailyGoal={dailyGoal} weeklyGoal={weeklyGoal} />
+            </ResponsiveContainer>
+          </div>
+
           <MonthGrid perDay={perDay} dailyGoal={dailyGoal} />
         </section>
 
