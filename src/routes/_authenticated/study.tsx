@@ -354,3 +354,25 @@ function StudyModePage() {
     </motion.div>
   );
 }
+
+function PlannedEndCountdown({ plannedEnd, onReached }: { plannedEnd: string; onReached: () => void }) {
+  const [left, setLeft] = useState(() => Math.max(0, new Date(plannedEnd).getTime() - Date.now()));
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const remaining = Math.max(0, new Date(plannedEnd).getTime() - Date.now());
+      setLeft(remaining);
+      if (remaining === 0) onReached();
+    }, 1000);
+    return () => clearInterval(t);
+  }, [plannedEnd, onReached]);
+
+  const m = Math.floor(left / 60000);
+  const s = Math.floor((left % 60000) / 1000);
+  if (left === 0) return <p className="mt-2 font-mono text-[10px] text-brand uppercase">block ended · saving</p>;
+  return (
+    <p className="mt-2 font-mono text-[10px] text-white/40 uppercase">
+      ends in {String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
+    </p>
+  );
+}
