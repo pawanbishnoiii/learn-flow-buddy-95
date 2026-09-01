@@ -509,19 +509,68 @@ function TodayPage() {
           )}
         </section>
 
-        {/* AI insight */}
-        <section className="rounded-3xl border border-brand/25 bg-brand/5 p-5">
-          <div className="flex items-center gap-3">
-            <Icon3D name="brain" size={32} />
-            <h2 className="text-sm font-semibold">AI coach</h2>
-            <Link to="/assistant" className="ml-auto font-mono text-[10px] text-brand uppercase">
-              chat
-            </Link>
+        {/* Monthly progress */}
+        <section className="rounded-3xl border border-border bg-panel p-5">
+          <h2 className="text-sm font-semibold">Monthly progress</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Last 6 months of real sessions vs your pro-rated goal
+          </p>
+          <div className="mt-4 h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monthly}>
+                <defs>
+                  <linearGradient id="monthFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                />
+                <YAxis hide />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    fontSize: 12,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="var(--brand)"
+                  strokeWidth={2}
+                  fill="url(#monthFill)"
+                />
+                <Line type="monotone" dataKey="goal" stroke="var(--warm)" dot={false} strokeDasharray="4 4" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <p className="mt-3 text-sm leading-relaxed">
-            {insight.isLoading ? "Reading your study data…" : (insight.data?.insight ?? "AI is warming up.")}
+          <p className="mt-2 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+            this month {monthly.at(-1)?.hours ?? 0}h · {monthly.at(-1)?.pct ?? 0}% of goal
           </p>
         </section>
+
+        {/* AI insight — admin only */}
+        {admin.data ? (
+          <section className="rounded-3xl border border-brand/25 bg-brand/5 p-5">
+            <div className="flex items-center gap-3">
+              <Icon3D name="brain" size={32} />
+              <h2 className="text-sm font-semibold">AI coach</h2>
+              <Link to="/assistant" className="ml-auto font-mono text-[10px] text-brand uppercase">
+                chat
+              </Link>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed">
+              {insight.isLoading ? "Reading your study data…" : (insight.data?.insight ?? "AI is warming up.")}
+            </p>
+          </section>
+        ) : null}
 
         {/* Motivation + magazine */}
         <section className="grid gap-3">
