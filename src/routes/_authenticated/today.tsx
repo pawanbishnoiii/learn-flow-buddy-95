@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -33,7 +32,10 @@ import {
   fetchSettings,
   fetchSubjects,
   fetchTargets,
+  hourlyHeat,
   minutesInRange,
+  reorderBlocks,
+  subjectProgress,
   startBreak,
   startOfToday,
   startOfWeek,
@@ -41,6 +43,7 @@ import {
   stopSession,
   weeklyHistory,
 } from "@/lib/study";
+import type { Block, Target } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/today")({
   head: () => ({
@@ -65,6 +68,7 @@ const EIGHT_WEEKS = new Date(Date.now() - 8 * 7 * 864e5).toISOString();
 
 function TodayPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [startOpen, setStartOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [scope, setScope] = useState<"day" | "week" | "month">("week");
@@ -129,6 +133,18 @@ function TodayPage() {
     const month = new Date().getMonth() + 1;
     return ms.find((m) => m.month === month) ?? ms[month % ms.length] ?? null;
   }, [motivations.data]);
+
+  const hours = useMemo(() => hourlyHeat(all), [all]);
+  const progress = useMemo(
+    () => subjectProgress(all, subjects.data ?? []),
+    [all, subjects.data],
+  );
+
+  const reorder = useMutation({
+    mutationFn: (ids: string[]) => reorderBlocks(ids),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["blocks"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const start = useMutation({
     mutationFn: async () => {
@@ -240,10 +256,10 @@ function TodayPage() {
           </div>
 
           <button
-            onClick={() => (running.data ? undefined : setStartOpen(true))}
+            onClick={() => navigate({ to: "/study" })}
             className="relative mt-5 h-14 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
           >
-            {running.data ? "Session running…" : "Start study"}
+            {running.data ? "Back to running session" : "Start study"}
           </button>
         </section>
 
@@ -295,6 +311,71 @@ function TodayPage() {
 
           <MonthGrid perDay={perDay} />
         </section>
+
+        {/* Hourly heatmap */}
+        <section className="rounded-3xl border border-border bg-panel p-5">
+          <div className="flex items-center gap-3">
+            <Icon3D name="clock" size={32} />
+            <h2 className="text-sm font-semibold">Hour by hour</h2>
+            <span className="ml-auto font-mono text-[10px] text-muted-foreground uppercase">today</span>
+          </div>
+          <HourGrid hours={hours} />
+          <div className="mt-3 flex items-center gap-4 font-mono text-[9px] text-muted-foreground uppercase">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm bg-brand" /> studied
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm bg-destructive/70" /> missed
+            </span>
+          </div>
+        </section>
+
+        {/* Subject progress */}
+        <section className="rounded-3xl border border-border bg-panel p-5">
+          <div className="flex items-center gap-3">
+            <Icon3D name="books" size={32} />
+            <h2 className="text-sm font-semibold">Subject progress</h2>
+            <Link to="/targets" className="ml-auto font-mono text-[10px] text-brand uppercase">
+              subjects
+            </Link>
+          </div>
+          {progress.length ? (
+            <ul className="mt-4 space-y-3">
+              {progress.map((p) => (
+                <li key={p.name}>
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="min-w-0 truncate font-medium">{p.name}</span>
+                    <span className="shrink-0 font-mono text-muted-foreground">
+                      {p.sessions} sess · {(p.minutes / 60).toFixed(1)}h
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background">
+                    <div
+                      className="h-full rounded-full bg-brand transition-all duration-700"
+                      style={{ width: `${p.pct}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    {p.targetHours > 0
+                      ? `${p.pct}% of ${p.targetHours}h · ${p.remainingHours.toFixed(1)}h left`
+                      : "no weekly target set"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Add subjects and finish a session to see per-subject progress.
+            </p>
+          )}
+        </section>
+
+        {/* Day planner with drag & drop */}
+        <DayPlanner
+          blocks={blocks.data ?? []}
+          targets={activeTargets}
+          onReorder={(ids) => reorder.mutate(ids)}
+        />
 
         {/* Weekly progress chart */}
         <section className="rounded-3xl border border-border bg-panel p-5">
@@ -668,5 +749,126 @@ function Sheet({
         <div className="mt-4">{children}</div>
       </div>
     </div>
+  );
+}
+
+function HourGrid({ hours }: { hours: number[] }) {
+  const nowHour = new Date().getHours();
+  return (
+    <div className="mt-4 grid grid-cols-8 gap-1.5 sm:grid-cols-12">
+      {hours.map((mins, h) => {
+        const future = h > nowHour;
+        const bg = future
+          ? "var(--accent)"
+          : mins >= 20
+            ? `color-mix(in oklab, var(--brand) ${Math.min(100, 40 + mins)}%, var(--accent))`
+            : "color-mix(in oklab, var(--destructive) 45%, var(--accent))";
+        return (
+          <div
+            key={h}
+            title={`${String(h).padStart(2, "0")}:00 · ${mins}m`}
+            className="grid aspect-square place-items-center rounded-md font-mono text-[9px] transition-colors"
+            style={{ background: bg, color: "var(--foreground)" }}
+          >
+            {h}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DayPlanner({
+  blocks,
+  targets,
+  onReorder,
+}: {
+  blocks: Block[];
+  targets: Target[];
+  onReorder: (ids: string[]) => void;
+}) {
+  const [day, setDay] = useState(new Date().getDay());
+  const [dragId, setDragId] = useState<string | null>(null);
+  const items = blocks.filter((b) => b.day_of_week === day);
+
+  function drop(overId: string) {
+    if (!dragId || dragId === overId) return;
+    const ids = items.map((b) => b.id);
+    const from = ids.indexOf(dragId);
+    const to = ids.indexOf(overId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ...ids.splice(from, 1));
+    onReorder(ids);
+    setDragId(null);
+  }
+
+  return (
+    <section className="rounded-3xl border border-border bg-panel p-5">
+      <div className="flex items-center gap-3">
+        <Icon3D name="calendar" size={32} />
+        <h2 className="text-sm font-semibold">Day calendar</h2>
+        <Link to="/timetable" className="ml-auto font-mono text-[10px] text-brand uppercase">
+          edit
+        </Link>
+      </div>
+
+      <div className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {[1, 2, 3, 4, 5, 6, 0].map((d) => (
+          <button
+            key={d}
+            onClick={() => setDay(d)}
+            className={`h-9 shrink-0 rounded-xl px-3 font-mono text-[11px] transition-colors ${
+              day === d ? "bg-brand text-brand-foreground" : "border border-border text-muted-foreground"
+            }`}
+          >
+            {DAYS[d]}
+          </button>
+        ))}
+      </div>
+
+      {items.length ? (
+        <ul className="mt-4 space-y-2">
+          {items.map((b) => (
+            <li
+              key={b.id}
+              draggable
+              onDragStart={() => setDragId(b.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => drop(b.id)}
+              className={`flex cursor-grab items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-xs transition-opacity active:cursor-grabbing ${
+                dragId === b.id ? "opacity-50" : ""
+              }`}
+            >
+              <span className="font-mono text-muted-foreground">⠿</span>
+              <span className="min-w-0 flex-1 truncate">
+                {b.title}
+                <span className="ml-2 text-muted-foreground capitalize">{b.kind}</span>
+              </span>
+              <span className="shrink-0 font-mono text-muted-foreground">
+                {b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-xs text-muted-foreground">No blocks for this day yet.</p>
+      )}
+
+      <p className="mt-4 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+        Targets
+      </p>
+      {targets.length ? (
+        <ul className="mt-2 space-y-1.5">
+          {targets.map((t) => (
+            <li key={t.id} className="flex items-center justify-between gap-3 text-xs">
+              <span className="min-w-0 truncate">{t.title}</span>
+              <span className="shrink-0 font-mono text-muted-foreground">{t.daily_hours}h today</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">No active targets.</p>
+      )}
+    </section>
   );
 }
