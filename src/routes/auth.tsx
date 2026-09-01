@@ -31,11 +31,18 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/today", replace: true });
-    });
+    async function route(session: { user: { id: string } } | null) {
+      if (!session) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarded")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      navigate({ to: profile?.onboarded ? "/today" : "/onboarding", replace: true });
+    }
+    supabase.auth.getSession().then(({ data }) => route(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/today", replace: true });
+      void route(session);
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
@@ -51,7 +58,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/today", replace: true });
+    navigate({ to: "/onboarding", replace: true });
   }
 
   async function withEmail(e: React.FormEvent) {
