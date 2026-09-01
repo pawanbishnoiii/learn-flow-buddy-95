@@ -20,6 +20,19 @@ import {
 /** A single session can never exceed 8 hours. */
 const MAX_SESSION_SECONDS = 8 * 3600;
 
+const SESSION_KINDS = [
+  { k: "reading", l: "Reading", d: "Books & notes", emoji: "\u{1F4D6}" },
+  { k: "class", l: "Online class", d: "Live / recorded", emoji: "\u{1F3A7}" },
+  { k: "revision", l: "Revision", d: "Recall & re-read", emoji: "\u{1F501}" },
+  { k: "practice", l: "Practice", d: "Papers & problems", emoji: "\u{270F}\u{FE0F}" },
+] as const;
+
+const BREAK_KINDS = [
+  { k: "pause", l: "Short break", emoji: "\u{2615}" },
+  { k: "sleep", l: "Power nap", emoji: "\u{1F634}" },
+  { k: "free", l: "Free time", emoji: "\u{1F3AE}" },
+] as const;
+
 const NUDGES = [
   "Bas thodi der aur — 10 minute aur nikaal le.",
   "Abhi rukega to kal phir zero se shuru karna padega.",
@@ -307,7 +320,9 @@ function StudyModePage() {
 
         <>
           <p className="font-mono text-[10px] tracking-[0.4em] text-white/35 uppercase">
-            {openBreak.data ? `on ${openBreak.data.kind}` : "focus"}
+            {openBreak.data
+              ? `on ${BREAK_KINDS.find((b) => b.k === openBreak.data?.kind)?.l ?? "break"}`
+              : "focus"}
           </p>
 
           <motion.div
@@ -378,13 +393,14 @@ function StudyModePage() {
                           Resume
                         </button>
                       ) : (
-                        ["pause", "sleep", "free"].map((k) => (
+                        BREAK_KINDS.map((b) => (
                           <button
-                            key={k}
-                            onClick={() => pause.mutate(k)}
-                            className="h-12 flex-1 rounded-2xl border border-white/20 text-sm font-medium text-white/80 capitalize"
+                            key={b.k}
+                            onClick={() => pause.mutate(b.k)}
+                            className="flex h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl border border-white/15 bg-white/[0.04] text-white/80 transition-colors hover:border-white/30 active:scale-[0.98]"
                           >
-                            {k}
+                            <span className="text-sm leading-none">{b.emoji}</span>
+                            <span className="text-[10px] font-medium">{b.l}</span>
                           </button>
                         ))
                       )}
