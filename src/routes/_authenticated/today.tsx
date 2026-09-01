@@ -241,7 +241,7 @@ function TodayPage() {
 
       <div className="space-y-8 px-5 py-6">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-panel p-6">
+        <section className="glass-panel relative overflow-hidden rounded-3xl p-6">
           <div className="pointer-events-none absolute -top-16 -right-10 size-52 rounded-full bg-brand/15 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
@@ -261,14 +261,14 @@ function TodayPage() {
 
           <div className="relative mt-5 h-2 overflow-hidden rounded-full bg-background">
             <div
-              className="h-full rounded-full bg-brand transition-all duration-700"
+              className="gradient-ring h-full rounded-full transition-all duration-700"
               style={{ width: `${Math.min(100, (todayMin / 60 / dailyGoal) * 100)}%` }}
             />
           </div>
 
           <button
             onClick={() => navigate({ to: "/study" })}
-            className="relative mt-5 h-14 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
+            className="gradient-ring breathe relative mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
           >
             {running.data ? "Back to running session" : "Start study"}
           </button>
@@ -281,9 +281,9 @@ function TodayPage() {
             { label: "This week", value: `${(weekMin / 60).toFixed(1)}h`, icon: "target" as const },
             { label: "This month", value: `${(monthMin / 60).toFixed(1)}h`, icon: "trophy" as const },
           ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-border bg-panel p-4">
+            <div key={s.label} className="glass-panel rounded-2xl p-4">
               <Icon3D name={s.icon} size={28} />
-              <p className="mt-3 font-mono text-lg leading-none font-semibold">{s.value}</p>
+              <p className="num mt-3 text-lg leading-none font-semibold">{s.value}</p>
               <p className="mt-1 text-[10px] tracking-wide text-muted-foreground uppercase">{s.label}</p>
             </div>
           ))}
@@ -368,7 +368,7 @@ function TodayPage() {
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background">
                     <div
-                      className="h-full rounded-full bg-brand transition-all duration-700"
+                      className="gradient-ring h-full rounded-full transition-all duration-700"
                       style={{ width: `${p.pct}%` }}
                     />
                   </div>
