@@ -150,11 +150,15 @@ function TodayPage() {
   const start = useMutation({
     mutationFn: async () => {
       const subj = (subjects.data ?? []).find((s) => s.id === form.subject_id);
+      const now = new Date();
+      const current = (blocks.data ?? []).find((b) => b.day_of_week === now.getDay() && b.start_time <= `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}` && b.end_time >= `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`);
+      const plannedEnd = current ? localTimeToIsoToday(current.end_time) : null;
       await startSession({
         subject_id: subj?.id ?? null,
         subject_name: subj?.name ?? form.subject_name.trim() ?? null,
         topic: form.topic.trim() || null,
         kind: form.kind,
+        planned_end_at: plannedEnd,
       });
     },
     onSuccess: async () => {
