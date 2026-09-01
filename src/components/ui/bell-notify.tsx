@@ -26,7 +26,7 @@ const CSS = `
 .bell-root .bell-top{width:14%;height:14%;border-radius:50%;translate:0 -28em;background:var(--base-clr);box-shadow:inset -1em -.5em 2em .5em #fff,inset 1em -1em 2em 3em #000,0 -.1em .4em .3em #c6eaffa8;}
 .bell-root .bell-base{width:50%;height:50%;border-radius:50%;overflow:hidden;translate:0 -24%;background:var(--base-clr);box-shadow:0 -.1em .4em .2em #c6eaffa8;}
 .bell-root .bell-base:before{content:'';background-image:radial-gradient(circle at -80% -12%,transparent 50em,var(--base-clr) 50em);position:absolute;translate:-18em 20em;width:100%;height:80%;}
-.bell-root .bell-base:after{content:'';background-image:radial-gradient(circle at -80% -12%,transparent 50.1em,#cacaca 50.3em,var(--base-clr) 50.5em);position:absolute;translate:18em 20em;width:100%;height:80%;transform:rotateY(180deg);}
+.bell-root .bell-base:after{content:'';background-image:radial-gradient(circle at 180% -12%,transparent 50.1em,#cacaca 50.3em,var(--base-clr) 50.5em);position:absolute;translate:18em 20em;width:100%;height:80%;}
 .bell-root .bell-base:nth-of-type(3){filter:brightness(3) blur(1em);scale:.74 .84;translate:0 -11em;}
 .bell-root .shadow-l1{width:30em;height:42em;border-radius:50%;rotate:12deg;translate:-3em -6em;filter:blur(2em);background:#797a80;}
 .bell-root .shadow-l2{width:130%;height:90%;filter:blur(5em);translate:-6em 9em;}
