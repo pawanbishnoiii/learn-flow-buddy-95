@@ -16,6 +16,7 @@ export type Session = {
   kind: string;
   started_at: string;
   ended_at: string | null;
+  planned_end_at: string | null;
   duration_minutes: number | null;
   is_running: boolean;
   auto_closed: boolean;
@@ -137,6 +138,7 @@ export async function startSession(input: {
   subject_name: string | null;
   topic: string | null;
   kind: string;
+  planned_end_at?: string | null;
 }) {
   const user_id = await uid();
   const { error } = await supabase.from("study_sessions").insert({
@@ -144,7 +146,7 @@ export async function startSession(input: {
     user_id,
     is_running: true,
     started_at: new Date().toISOString(),
-  });
+  } as any);
   if (error) throw error;
 }
 
@@ -183,6 +185,15 @@ export async function fetchBlocks(): Promise<Block[]> {
     .order("start_time");
   if (error) throw error;
   return (data ?? []) as Block[];
+}
+
+/** Returns the timetable block covering the current moment, if any. */
+export function currentBlock(blocks: Block[]) {
+  const now = new Date();
+  const hhmm = now.toTimeString().slice(0, 5);
+  return blocks.find(
+    (b) => b.day_of_week === now.getDay() && b.start_time.slice(0, 5) <= hhmm && hhmm < b.end_time.slice(0, 5),
+  );
 }
 
 export async function createBlock(input: Omit<Block, "id">) {
