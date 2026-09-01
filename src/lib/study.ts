@@ -416,3 +416,178 @@ export function weeklyHistory(sessions: Session[], goalHours: number, weeks = 8)
   }
   return out;
 }
+
+/* ---------------- profile & onboarding ---------------- */
+
+export type Profile = {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  timezone: string;
+  first_name: string | null;
+  last_name: string | null;
+  gender: string | null;
+  age: number | null;
+  phone: string | null;
+  avg_study_hours: number;
+  onboarded: boolean;
+};
+
+export async function fetchMyProfile(): Promise<Profile | null> {
+  const user_id = await uid();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user_id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Profile) ?? null;
+}
+
+/** Copies Google/OAuth identity data into the profile row if it is missing. */
+export async function syncIdentityToProfile() {
+  const { data } = await supabase.auth.getUser();
+  const u = data.user;
+  if (!u) return null;
+  const meta = (u.user_metadata ?? {}) as Record<string, string | undefined>;
+  const patch: Record<string, unknown> = { id: u.id };
+  const existing = await fetchMyProfile();
+  if (!existing?.avatar_url && (meta.avatar_url || meta.picture))
+    patch.avatar_url = meta.avatar_url ?? meta.picture;
+  if (!existing?.display_name && (meta.full_name || meta.name))
+    patch.display_name = meta.full_name ?? meta.name;
+  if (!existing?.first_name && meta.given_name) patch.first_name = meta.given_name;
+  if (!existing?.last_name && meta.family_name) patch.last_name = meta.family_name;
+  const { data: saved, error } = await supabase
+    .from("profiles")
+    .upsert(patch, { onConflict: "id" })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return saved as Profile;
+}
+
+export async function saveOnboarding(input: {
+  first_name: string;
+  last_name: string;
+  gender: string;
+  age: number;
+  phone: string;
+  avg_study_hours: number;
+}) {
+  const user_id = await uid();
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(
+      {
+        id: user_id,
+        ...input,
+        display_name: `${input.first_name} ${input.last_name}`.trim(),
+        onboarded: true,
+      },
+      { onConflict: "id" },
+    );
+  if (error) throw error;
+}
+
+export async function isAdmin() {
+  const user_id = await uid();
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user_id)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) return false;
+  return !!data;
+}
+
+/* ---------------- timetable ordering ---------------- */
+
+export async function reorderBlocks(ids: string[]) {
+  await Promise.all(
+    ids.map((id, i) => supabase.from("timetable_blocks").update({ sort_order: i }).eq("id", id)),
+  );
+}
+
+/* ---------------- hourly analytics ---------------- */
+
+/** minutes studied per hour (0-23) for one calendar day */
+export function hourlyHeat(sessions: Session[], date = new Date()) {
+  const dayStart = new Date(date);
+  dayStart.setHours(0, 0, 0, 0);
+  const hours = new Array(24).fill(0) as number[];
+  for (const s of sessions) {
+    const startMs = new Date(s.started_at).getTime();
+    const endMs = s.ended_at
+      ? new Date(s.ended_at).getTime()
+      : startMs + (s.duration_minutes ?? 0) * 60000;
+    for (let h = 0; h < 24; h++) {
+      const cellStart = dayStart.getTime() + h * 3600_000;
+      const cellEnd = cellStart + 3600_000;
+      const overlap = Math.min(endMs, cellEnd) - Math.max(startMs, cellStart);
+      if (overlap > 0) hours[h] = (hours[h] ?? 0) + Math.round(overlap / 60000);
+    }
+  }
+  return hours;
+}
+
+export type SubjectProgress = {
+  id: string | null;
+  name: string;
+  color: string;
+  sessions: number;
+  minutes: number;
+  targetHours: number;
+  pct: number;
+  remainingHours: number;
+};
+
+/** per-subject session count + weekly target progress */
+export function subjectProgress(
+  sessions: Session[],
+  subjects: Subject[],
+  since = startOfWeek(),
+): SubjectProgress[] {
+  const map = new Map<string, SubjectProgress>();
+  for (const s of subjects) {
+    map.set(s.id, {
+      id: s.id,
+      name: s.name,
+      color: s.color,
+      sessions: 0,
+      minutes: 0,
+      targetHours: s.weekly_target_hours ?? 0,
+      pct: 0,
+      remainingHours: s.weekly_target_hours ?? 0,
+    });
+  }
+  for (const s of sessions) {
+    if (s.is_running || !s.duration_minutes) continue;
+    if (new Date(s.started_at) < since) continue;
+    const key = s.subject_id ?? `name:${s.subject_name ?? "Other"}`;
+    let row = map.get(key);
+    if (!row) {
+      row = {
+        id: s.subject_id,
+        name: s.subject_name ?? "Other",
+        color: "#8b8b8b",
+        sessions: 0,
+        minutes: 0,
+        targetHours: 0,
+        pct: 0,
+        remainingHours: 0,
+      };
+      map.set(key, row);
+    }
+    row.sessions += 1;
+    row.minutes += s.duration_minutes;
+  }
+  return [...map.values()]
+    .map((r) => {
+      const done = r.minutes / 60;
+      const pct = r.targetHours > 0 ? Math.min(100, Math.round((done / r.targetHours) * 100)) : 0;
+      return { ...r, pct, remainingHours: Math.max(0, r.targetHours - done) };
+    })
+    .sort((a, b) => b.minutes - a.minutes);
+}

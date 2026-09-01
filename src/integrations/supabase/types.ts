@@ -70,26 +70,47 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           avatar_url: string | null
+          avg_study_hours: number
           created_at: string
           display_name: string | null
+          first_name: string | null
+          gender: string | null
           id: string
+          last_name: string | null
+          onboarded: boolean
+          phone: string | null
           timezone: string
           updated_at: string
         }
         Insert: {
+          age?: number | null
           avatar_url?: string | null
+          avg_study_hours?: number
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
+          gender?: string | null
           id: string
+          last_name?: string | null
+          onboarded?: boolean
+          phone?: string | null
           timezone?: string
           updated_at?: string
         }
         Update: {
+          age?: number | null
           avatar_url?: string | null
+          avg_study_hours?: number
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
+          gender?: string | null
           id?: string
+          last_name?: string | null
+          onboarded?: boolean
+          phone?: string | null
           timezone?: string
           updated_at?: string
         }
@@ -277,6 +298,7 @@ export type Database = {
           id: string
           kind: string
           location: string | null
+          sort_order: number
           start_time: string
           subject_id: string | null
           title: string
@@ -289,6 +311,7 @@ export type Database = {
           id?: string
           kind?: string
           location?: string | null
+          sort_order?: number
           start_time: string
           subject_id?: string | null
           title: string
@@ -301,6 +324,7 @@ export type Database = {
           id?: string
           kind?: string
           location?: string | null
+          sort_order?: number
           start_time?: string
           subject_id?: string | null
           title?: string
@@ -315,6 +339,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       user_settings: {
         Row: {
@@ -355,9 +400,16 @@ export type Database = {
     }
     Functions: {
       close_stale_sessions: { Args: never; Returns: undefined }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -484,6 +536,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
