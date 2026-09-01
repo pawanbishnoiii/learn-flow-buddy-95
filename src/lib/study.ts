@@ -20,6 +20,7 @@ export type Session = {
   duration_minutes: number | null;
   is_running: boolean;
   auto_closed: boolean;
+  break_minutes?: number | null;
 };
 
 export type Block = {
