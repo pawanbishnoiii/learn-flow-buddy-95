@@ -91,9 +91,7 @@ function StudyModePage() {
   const start = useMutation({
     mutationFn: async () => {
       const subj = (subjects.data ?? []).find((s) => s.id === form.subject_id);
-      const plannedEnd = form.planned_end_at
-        ? new Date(new Date().toDateString() + " " + form.planned_end_at).toISOString()
-        : null;
+      const plannedEnd = form.planned_end_at ? localTimeToIsoToday(form.planned_end_at) : null;
       await startSession({
         subject_id: subj?.id ?? null,
         subject_name: subj?.name ?? (form.subject_name.trim() || "Study"),
