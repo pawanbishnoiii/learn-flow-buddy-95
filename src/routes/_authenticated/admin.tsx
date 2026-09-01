@@ -13,14 +13,17 @@ import {
   fetchBreaks,
   fetchSessions,
   fetchSubjects,
+  fetchAppSettings,
   fetchTargets,
   isAdmin,
   minutesInRange,
   startOfToday,
   startOfWeek,
   subjectProgress,
+  updateAppSettings,
   updateBlock,
   updateSubject,
+  type AppSettings,
   type Block,
   type Subject,
 } from "@/lib/study";
@@ -450,5 +453,117 @@ function Sheet({
         {children}
       </div>
     </div>
+  );
+}
+
+function SiteSettings() {
+  const qc = useQueryClient();
+  const settings = useQuery({ queryKey: ["app-settings"], queryFn: fetchAppSettings });
+  const [draft, setDraft] = useState<AppSettings | null>(null);
+  const value = draft ?? settings.data ?? null;
+
+  const save = useMutation({
+    mutationFn: async (patch: AppSettings) => updateAppSettings(patch),
+    onSuccess: async () => {
+      setDraft(null);
+      await qc.invalidateQueries({ queryKey: ["app-settings"] });
+      toast.success("Site settings saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!value) {
+    return (
+      <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+        <h2 className="text-sm font-semibold">Site settings</h2>
+        <p className="mt-2 text-xs text-muted-foreground">Loading…</p>
+      </section>
+    );
+  }
+
+  const set = (patch: Partial<AppSettings>) => setDraft({ ...value, ...patch });
+
+  return (
+    <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+      <h2 className="text-sm font-semibold">Site settings</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Global app identity and feature switches. User management stays off for now.
+      </p>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="block text-xs text-muted-foreground">Site name</label>
+          <input value={value.site_name} onChange={(e) => set({ site_name: e.target.value })} className="input mt-1" />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground">Tagline</label>
+          <input value={value.tagline} onChange={(e) => set({ tagline: e.target.value })} className="input mt-1" />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground">Support email</label>
+          <input
+            type="email"
+            value={value.support_email ?? ""}
+            onChange={(e) => set({ support_email: e.target.value })}
+            className="input mt-1"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground">Banner text</label>
+          <input
+            value={value.banner_text ?? ""}
+            onChange={(e) => set({ banner_text: e.target.value })}
+            className="input mt-1"
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <Toggle
+          label="AI assistant enabled"
+          on={value.ai_enabled}
+          onChange={(v) => set({ ai_enabled: v })}
+        />
+        <Toggle
+          label="Public landing page enabled"
+          on={value.landing_enabled}
+          onChange={(v) => set({ landing_enabled: v })}
+        />
+      </div>
+
+      <label className="mt-4 block text-xs text-muted-foreground">Maintenance note</label>
+      <textarea
+        value={value.maintenance_note ?? ""}
+        onChange={(e) => set({ maintenance_note: e.target.value })}
+        rows={2}
+        className="mt-1 w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-brand/60"
+      />
+
+      <button
+        onClick={() => save.mutate(value)}
+        disabled={!draft || save.isPending}
+        className="mt-4 h-11 w-full rounded-xl bg-brand text-sm font-semibold text-brand-foreground transition-opacity disabled:opacity-50 sm:w-48"
+      >
+        {save.isPending ? "Saving…" : "Save settings"}
+      </button>
+    </section>
+  );
+}
+
+function Toggle({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!on)}
+      className="flex w-full items-center justify-between rounded-2xl border border-border px-3 py-3 text-left text-sm transition-colors hover:border-brand/40"
+    >
+      <span>{label}</span>
+      <span
+        className={`relative h-6 w-11 rounded-full transition-colors ${on ? "bg-brand" : "bg-muted"}`}
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-background transition-all ${on ? "left-[1.375rem]" : "left-0.5"}`}
+        />
+      </span>
+    </button>
   );
 }
