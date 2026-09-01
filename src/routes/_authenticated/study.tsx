@@ -255,7 +255,7 @@ function StudyModePage() {
           </motion.div>
 
           {s.planned_end_at ? (
-            <PlannedEndCountdown plannedEnd={s.planned_end_at} onReached={() => save.mutate()} />
+            <PlannedEndCountdown plannedEnd={s.planned_end_at} onReached={reveal} />
           ) : null}
 
           <p className="mt-8 text-sm font-medium text-white/70">{s.subject_name ?? "Study"}</p>
