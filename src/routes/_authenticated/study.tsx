@@ -164,6 +164,17 @@ function StudyModePage() {
   const elapsed = s ? Math.max(0, Math.floor((Date.now() - new Date(s.started_at).getTime()) / 1000)) : 0;
   void tick;
 
+  // Hard cap: a single session can never run longer than 8 hours — it auto-saves itself.
+  const autoStopped = useRef(false);
+  useEffect(() => {
+    if (!s || autoStopped.current) return;
+    if (elapsed >= MAX_SESSION_SECONDS) {
+      autoStopped.current = true;
+      toast.message("8 hour limit reached — session saved automatically");
+      save.mutate();
+    }
+  }, [s, elapsed, save]);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 1.04 }}
