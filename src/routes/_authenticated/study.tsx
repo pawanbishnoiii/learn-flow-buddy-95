@@ -17,6 +17,17 @@ import {
   stopSession,
 } from "@/lib/study";
 
+/** A single session can never exceed 8 hours. */
+const MAX_SESSION_SECONDS = 8 * 3600;
+
+const NUDGES = [
+  "Bas thodi der aur — 10 minute aur nikaal le.",
+  "Abhi rukega to kal phir zero se shuru karna padega.",
+  "Ek chapter aur. Future tu thank you bolega.",
+  "Itni jaldi thak gaya? Tere andar isse zyada dum hai.",
+  "Break lena hai to break le — par session mat maar.",
+];
+
 export const Route = createFileRoute("/_authenticated/study")({
   head: () => ({
     meta: [
