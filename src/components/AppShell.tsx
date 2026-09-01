@@ -122,13 +122,43 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 pb-24 lg:max-w-5xl">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 pb-32 lg:max-w-5xl">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/85 backdrop-blur-xl">
-        <div className="mx-auto grid max-w-md grid-cols-5 gap-1 px-3 pt-2 pb-[calc(0.55rem+env(safe-area-inset-bottom))]">
+      <nav className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
+        <motion.div
+          initial={{ y: 28, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 28 }}
+          className="mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-[26px] border border-border/70 bg-panel/70 px-2 py-2 shadow-[0_24px_60px_-30px_rgb(0_0_0/0.9)] backdrop-blur-2xl"
+        >
           {NAV.map(({ to, label, Icon, ...rest }) => {
             const active = pathname === to;
             const center = "center" in rest && rest.center;
+
+            if (center) {
+              return (
+                <Link key={to} to={to} aria-label={label} className="flex flex-col items-center gap-1">
+                  <motion.span
+                    whileTap={{ scale: 0.9 }}
+                    className={`grid size-12 -translate-y-3 place-items-center rounded-2xl transition-colors duration-300 ${
+                      active
+                        ? "bg-brand text-brand-foreground shadow-[0_10px_30px_-8px_var(--brand)]"
+                        : "bg-brand/15 text-brand ring-1 ring-brand/25"
+                    }`}
+                  >
+                    <Icon className="size-5" />
+                  </motion.span>
+                  <span
+                    className={`-mt-2 text-[10px] font-medium transition-colors ${
+                      active ? "text-brand" : "text-muted-foreground"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                </Link>
+              );
+            }
+
             return (
               <Link
                 key={to}
@@ -136,26 +166,21 @@ export function AppShell({ children }: { children: ReactNode }) {
                 aria-label={label}
                 className="relative flex flex-col items-center gap-1 py-1"
               >
-                <span
-                  className={`relative grid h-9 w-14 place-items-center rounded-xl transition-colors duration-200 ${
-                    center
-                      ? active
-                        ? "bg-brand text-brand-foreground shadow-[0_6px_24px_-6px_var(--brand)]"
-                        : "bg-brand/15 text-brand"
-                      : active
-                        ? "text-brand"
-                        : "text-muted-foreground"
+                <motion.span
+                  whileTap={{ scale: 0.9 }}
+                  className={`relative grid h-9 w-full max-w-[58px] place-items-center rounded-2xl transition-colors duration-300 ${
+                    active ? "text-brand" : "text-muted-foreground"
                   }`}
                 >
-                  {active && !center ? (
+                  {active ? (
                     <motion.span
                       layoutId="nav-pill"
                       transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                      className="absolute inset-0 rounded-xl bg-brand/15"
+                      className="absolute inset-0 rounded-2xl bg-brand/15 ring-1 ring-brand/25"
                     />
                   ) : null}
-                  <Icon className={`relative size-[18px] ${center ? "size-5" : ""}`} />
-                </span>
+                  <Icon className="relative size-[18px]" />
+                </motion.span>
                 <span
                   className={`text-[10px] font-medium transition-colors ${
                     active ? "text-brand" : "text-muted-foreground"
@@ -166,8 +191,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-        </div>
+        </motion.div>
       </nav>
+
     </div>
   );
 }
