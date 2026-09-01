@@ -9,6 +9,9 @@ import {
   deleteSession,
   fetchBreaks,
   fetchSessions,
+  fetchSettings,
+  fetchTargets,
+  startOfWeek,
   updateBreak,
   updateSession,
   type Break,
@@ -54,6 +57,32 @@ function HistoryPage() {
 
   const sessions = useQuery({ queryKey: ["sessions", "all"], queryFn: () => fetchSessions() });
   const breaks = useQuery({ queryKey: ["breaks", "all"], queryFn: () => fetchBreaks() });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
+  const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
+
+  const dailyGoalMin = (settings.data?.daily_goal_hours ?? 4) * 60;
+
+  /** minutes logged per subject in the current week (for subject-target %) */
+  const weekBySubject = useMemo(() => {
+    const from = startOfWeek();
+    const map: Record<string, number> = {};
+    for (const s of sessions.data ?? []) {
+      if (!s.duration_minutes || new Date(s.started_at) < from) continue;
+      const key = s.subject_id ?? s.subject_name ?? "unknown";
+      map[key] = (map[key] ?? 0) + s.duration_minutes;
+    }
+    return map;
+  }, [sessions.data]);
+
+  function targetInfo(s: Session) {
+    const dayPct = dailyGoalMin > 0 ? Math.round(((s.duration_minutes ?? 0) / dailyGoalMin) * 100) : 0;
+    const t = (targets.data ?? []).find(
+      (x) => x.is_active && (x.subject_id ? x.subject_id === s.subject_id : false),
+    );
+    const done = weekBySubject[s.subject_id ?? s.subject_name ?? "unknown"] ?? 0;
+    const subjectPct = t?.hours_per_week ? Math.round((done / 60 / t.hours_per_week) * 100) : null;
+    return { dayPct, subjectPct, targetHours: t?.hours_per_week ?? null };
+  }
 
   const invalidate = async () => {
     await Promise.all([
@@ -235,6 +264,7 @@ function HistoryPage() {
                               <Detail label="Type" value={s.kind} />
                               <Detail label="Break" value={`${s.break_minutes ?? 0}m`} />
                             </dl>
+                            <TargetMeter {...targetInfo(s)} />
                             {s.notes ? (
                               <p className="text-xs leading-relaxed text-muted-foreground">{s.notes}</p>
                             ) : null}
@@ -444,6 +474,51 @@ function Sheet({
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
         <h3 className="text-sm font-semibold">{title}</h3>
         {children}
+      </div>
+    </div>
+  );
+}
+
+function TargetMeter({
+  dayPct,
+  subjectPct,
+  targetHours,
+}: {
+  dayPct: number;
+  subjectPct: number | null;
+  targetHours: number | null;
+}) {
+  return (
+    <div className="space-y-2 rounded-xl border border-border bg-background/60 p-3">
+      <Meter label="Of daily goal" pct={dayPct} note={`${dayPct}%`} />
+      {subjectPct !== null ? (
+        <Meter
+          label="Subject weekly target"
+          pct={subjectPct}
+          note={`${subjectPct}% of ${targetHours}h`}
+        />
+      ) : (
+        <p className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+          no weekly target for this subject
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Meter({ label, pct, note }: { label: string; pct: number; note: string }) {
+  const hit = pct >= 100;
+  return (
+    <div>
+      <div className="flex items-center justify-between text-[10px] tracking-wide text-muted-foreground uppercase">
+        <span>{label}</span>
+        <span className={`font-mono ${hit ? "text-brand" : ""}`}>{note}</span>
+      </div>
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${hit ? "bg-brand" : "bg-warm"}`}
+          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+        />
       </div>
     </div>
   );
