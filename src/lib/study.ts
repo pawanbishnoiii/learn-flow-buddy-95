@@ -32,6 +32,7 @@ export type Block = {
   start_time: string;
   end_time: string;
   location: string | null;
+  sort_order?: number;
 };
 
 export type Target = {
@@ -190,6 +191,7 @@ export async function fetchBlocks(): Promise<Block[]> {
     .from("timetable_blocks")
     .select("*")
     .order("day_of_week")
+    .order("sort_order")
     .order("start_time");
   if (error) throw error;
   return (data ?? []) as Block[];
