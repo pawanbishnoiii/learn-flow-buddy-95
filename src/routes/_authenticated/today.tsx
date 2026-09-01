@@ -705,7 +705,7 @@ function ScopeChart({
       const d = new Date(s.started_at);
       if (dayKey(d) !== dayKey(new Date())) continue;
       const h = d.getHours();
-      hours[h].m += s.duration_minutes ?? 0;
+      hours[h]!.m += s.duration_minutes ?? 0;
     }
     return (
       <BarChart data={hours}>
