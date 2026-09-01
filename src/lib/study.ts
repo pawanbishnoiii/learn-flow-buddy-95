@@ -656,3 +656,29 @@ export async function deleteBreak(id: string) {
   const { error } = await supabase.from("session_breaks").delete().eq("id", id);
   if (error) throw error;
 }
+
+/* ---------------- site settings (admin) ---------------- */
+
+export type AppSettings = {
+  site_name: string;
+  tagline: string;
+  support_email: string | null;
+  banner_text: string | null;
+  ai_enabled: boolean;
+  landing_enabled: boolean;
+  maintenance_note: string | null;
+};
+
+export async function fetchAppSettings(): Promise<AppSettings | null> {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("site_name,tagline,support_email,banner_text,ai_enabled,landing_enabled,maintenance_note")
+    .maybeSingle();
+  if (error) throw error;
+  return (data as AppSettings) ?? null;
+}
+
+export async function updateAppSettings(patch: Partial<AppSettings>) {
+  const { error } = await supabase.from("app_settings").update(patch).eq("id", true);
+  if (error) throw error;
+}
