@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 function TimetablePage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [day, setDay] = useState<number>(new Date().getDay());
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
