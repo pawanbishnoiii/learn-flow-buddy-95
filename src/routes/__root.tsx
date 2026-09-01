@@ -125,24 +125,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AnimatePresence mode="wait" initial={false}>
-        {/* opacity-only: transforms/filters here would break `position: fixed` children (bottom nav) */}
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <Outlet />
-        </motion.div>
-      </AnimatePresence>
-
+      {/* Page-level transitions live inside AppShell so the fixed bottom dock never unmounts. */}
+      <Outlet />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
 }
+
