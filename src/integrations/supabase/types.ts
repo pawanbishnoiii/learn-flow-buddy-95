@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      motivations: {
+        Row: {
+          author: string | null
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          month: number | null
+          title: string
+        }
+        Insert: {
+          author?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          month?: number | null
+          title: string
+        }
+        Update: {
+          author?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          month?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -65,9 +95,54 @@ export type Database = {
         }
         Relationships: []
       }
+      session_breaks: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          ended_at: string | null
+          id: string
+          kind: string
+          note: string | null
+          session_id: string | null
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          session_id?: string | null
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          session_id?: string | null
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_breaks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "study_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       study_sessions: {
         Row: {
           auto_closed: boolean
+          break_minutes: number
           created_at: string
           duration_minutes: number | null
           ended_at: string | null
@@ -83,6 +158,7 @@ export type Database = {
         }
         Insert: {
           auto_closed?: boolean
+          break_minutes?: number
           created_at?: string
           duration_minutes?: number | null
           ended_at?: string | null
@@ -98,6 +174,7 @@ export type Database = {
         }
         Update: {
           auto_closed?: boolean
+          break_minutes?: number
           created_at?: string
           duration_minutes?: number | null
           ended_at?: string | null

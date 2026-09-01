@@ -291,3 +291,128 @@ export function minutesInRange(sessions: Session[], since: Date, kind?: string) 
     return new Date(s.started_at) >= since ? acc + s.duration_minutes : acc;
   }, 0);
 }
+
+/* ---------------- breaks ---------------- */
+
+export type Break = {
+  id: string;
+  session_id: string | null;
+  kind: string;
+  note: string | null;
+  started_at: string;
+  ended_at: string | null;
+  duration_minutes: number | null;
+};
+
+export const BREAK_KINDS = ["pause", "sleep", "free", "meal"] as const;
+
+export async function startBreak(session_id: string | null, kind: string, note?: string) {
+  const user_id = await uid();
+  const { data, error } = await supabase
+    .from("session_breaks")
+    .insert({ user_id, session_id, kind, note: note ?? null })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as Break;
+}
+
+export async function endBreak(id: string, startedAt: string) {
+  const minutes = Math.max(
+    1,
+    Math.round((Date.now() - new Date(startedAt).getTime()) / 60000),
+  );
+  const { error } = await supabase
+    .from("session_breaks")
+    .update({ ended_at: new Date().toISOString(), duration_minutes: minutes })
+    .eq("id", id);
+  if (error) throw error;
+  return minutes;
+}
+
+export async function fetchBreaks(sinceIso?: string): Promise<Break[]> {
+  let q = supabase
+    .from("session_breaks")
+    .select("id,session_id,kind,note,started_at,ended_at,duration_minutes")
+    .order("started_at", { ascending: false })
+    .limit(100);
+  if (sinceIso) q = q.gte("started_at", sinceIso);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as Break[];
+}
+
+export async function fetchOpenBreak(): Promise<Break | null> {
+  const { data, error } = await supabase
+    .from("session_breaks")
+    .select("id,session_id,kind,note,started_at,ended_at,duration_minutes")
+    .is("ended_at", null)
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Break) ?? null;
+}
+
+/* ---------------- motivation library ---------------- */
+
+export type Motivation = {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  author: string | null;
+  month: number | null;
+};
+
+export async function fetchMotivations(): Promise<Motivation[]> {
+  const { data, error } = await supabase
+    .from("motivations")
+    .select("id,kind,title,body,author,month");
+  if (error) throw error;
+  return (data ?? []) as Motivation[];
+}
+
+/* ---------------- analytics ---------------- */
+
+/** minutes per calendar day, keyed by YYYY-MM-DD */
+export function dailyMinutes(sessions: Session[]) {
+  const map: Record<string, number> = {};
+  for (const s of sessions) {
+    if (!s.duration_minutes) continue;
+    const d = new Date(s.started_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    map[key] = (map[key] ?? 0) + s.duration_minutes;
+  }
+  return map;
+}
+
+export function dayKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** last N weeks of study hours vs the weekly goal */
+export function weeklyHistory(sessions: Session[], goalHours: number, weeks = 8) {
+  const thisWeek = startOfWeek();
+  const out: Array<{ label: string; hours: number; goal: number; pct: number }> = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const from = new Date(thisWeek);
+    from.setDate(from.getDate() - i * 7);
+    const to = new Date(from);
+    to.setDate(to.getDate() + 7);
+    let minutes = 0;
+    for (const s of sessions) {
+      if (!s.duration_minutes) continue;
+      const d = new Date(s.started_at);
+      if (d >= from && d < to) minutes += s.duration_minutes;
+    }
+    const hours = +(minutes / 60).toFixed(1);
+    out.push({
+      label: `${from.getDate()}/${from.getMonth() + 1}`,
+      hours,
+      goal: goalHours,
+      pct: goalHours > 0 ? Math.round((hours / goalHours) * 100) : 0,
+    });
+  }
+  return out;
+}
