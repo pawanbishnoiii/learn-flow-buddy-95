@@ -5,7 +5,7 @@ import heroImg from "@/assets/illus-hero.jpg";
 import focusImg from "@/assets/illus-focus.jpg";
 import aiImg from "@/assets/illus-ai.jpg";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/welcome")({
   head: () => ({
     meta: [
       { title: "Chronodeck — AI Study OS for focused learners" },
