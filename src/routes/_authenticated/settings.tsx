@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { fetchProfile, fetchSettings, fetchSubjects, saveProfile, saveSettings, type Settings } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -63,7 +62,7 @@ function SettingsPage() {
   });
 
   return (
-    <AppShell>
+    <>
       <section className="px-5 pt-6">
         <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-xs text-muted-foreground">Tune goals, AI tone and timer behaviour.</p>
@@ -165,6 +164,6 @@ function SettingsPage() {
           Save settings
         </button>
       </section>
-    </AppShell>
+    </>
   );
 }

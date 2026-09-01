@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { Icon3D } from "@/components/Icon3D";
 import {
   fetchSessions,
@@ -80,7 +79,7 @@ function ProfilePage() {
   const field = "h-12 w-full rounded-xl border border-border bg-background px-3 text-sm";
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6 px-5 py-6">
         <section className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-3xl border border-border bg-panel p-5 sm:flex sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -189,6 +188,6 @@ function ProfilePage() {
           </button>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }

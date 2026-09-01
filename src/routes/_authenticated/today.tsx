@@ -15,7 +15,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AppShell } from "@/components/AppShell";
 import { FocusMode } from "@/components/FocusMode";
 import { Icon3D } from "@/components/Icon3D";
 import { getDailyInsight } from "@/lib/ai.functions";
@@ -222,7 +221,7 @@ function TodayPage() {
   const inFocus = !!running.data && !saveOpen;
 
   return (
-    <AppShell>
+    <>
       {inFocus && running.data ? (
         <FocusMode
           startedAt={running.data.started_at}
@@ -700,7 +699,7 @@ function TodayPage() {
           </button>
         </Sheet>
       ) : null}
-    </AppShell>
+    </>
   );
 }
 

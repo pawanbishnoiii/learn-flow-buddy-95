@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
 import { Icon3D } from "@/components/Icon3D";
 import {
   DAYS,
@@ -119,7 +118,7 @@ function TimetablePage() {
   }
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6 px-4 py-6 sm:px-5">
         <header className="flex items-center gap-3">
           <Icon3D name="calendar" size={44} priority />
@@ -359,7 +358,7 @@ function TimetablePage() {
           </div>
         </div>
       ) : null}
-    </AppShell>
+    </>
   );
 }
 
