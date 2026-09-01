@@ -17,6 +17,9 @@ import {
 } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/study")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    block: typeof search.block === "string" ? search.block : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Study Mode — Chronodeck" },
