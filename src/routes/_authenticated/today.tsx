@@ -681,7 +681,7 @@ function Ring({ label, done, goal }: { label: string; done: number; goal: number
   );
 }
 
-function MonthGrid({ perDay }: { perDay: Record<string, number> }) {
+function MonthGrid({ perDay, dailyGoal }: { perDay: Record<string, number>; dailyGoal: number }) {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
   const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -703,27 +703,44 @@ function MonthGrid({ perDay }: { perDay: Record<string, number> }) {
         {cells.map((d, i) => {
           if (!d) return <span key={`e${i}`} />;
           const mins = perDay[dayKey(d)] ?? 0;
-          const level = mins === 0 ? 0 : mins < 60 ? 1 : mins < 150 ? 2 : mins < 300 ? 3 : 4;
+          const isFuture = d > now;
           const isToday = dayKey(d) === dayKey(now);
+          const hit = mins >= dailyGoal * 60;
+          const partial = mins > 0 && !hit;
+          const bg = isFuture
+            ? "var(--accent)"
+            : hit
+              ? "color-mix(in oklab, var(--success) 65%, var(--accent))"
+              : partial
+                ? "color-mix(in oklab, var(--warning) 55%, var(--accent))"
+                : "color-mix(in oklab, var(--destructive) 45%, var(--accent))";
           return (
             <div
               key={dayKey(d)}
               title={`${d.getDate()} · ${(mins / 60).toFixed(1)}h`}
               className={`grid aspect-square place-items-center rounded-md font-mono text-[9px] transition-colors ${
-                isToday ? "outline-1 outline-brand" : ""
+                isToday ? "outline-1 -outline-offset-1 outline-brand" : ""
               }`}
               style={{
-                background:
-                  level === 0
-                    ? "var(--accent)"
-                    : `color-mix(in oklab, var(--brand) ${level * 22}%, var(--accent))`,
-                color: level > 2 ? "var(--brand-foreground)" : "var(--muted-foreground)",
+                background: bg,
+                color: hit || partial ? "var(--background)" : "var(--muted-foreground)",
               }}
             >
               {d.getDate()}
             </div>
           );
         })}
+      </div>
+      <div className="mt-3 flex items-center gap-4 font-mono text-[9px] text-muted-foreground uppercase">
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[var(--success)]" /> hit
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[var(--warning)]" /> partial
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2.5 rounded-sm bg-[var(--destructive)]" /> missed
+        </span>
       </div>
     </div>
   );
