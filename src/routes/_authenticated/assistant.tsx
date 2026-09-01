@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { isAdmin } from "@/lib/study";
 import { askStudyAi, getDailyInsight } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_authenticated/assistant")({
