@@ -115,6 +115,7 @@ function TodayPage() {
   const monthMin = minutesInRange(all, monthStart);
 
   const history = useMemo(() => weeklyHistory(all, weeklyGoal), [all, weeklyGoal]);
+  const monthly = useMemo(() => monthlyHistory(all, weeklyGoal), [all, weeklyGoal]);
   const perDay = useMemo(() => dailyMinutes(all), [all]);
 
   const todayIdx = new Date().getDay();
