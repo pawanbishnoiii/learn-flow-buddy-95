@@ -14,13 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          auto_closed: boolean
+          created_at: string
+          duration_minutes: number | null
+          ended_at: string | null
+          id: string
+          is_running: boolean
+          kind: string
+          notes: string | null
+          started_at: string
+          subject_id: string | null
+          subject_name: string | null
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_closed?: boolean
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          is_running?: boolean
+          kind?: string
+          notes?: string | null
+          started_at?: string
+          subject_id?: string | null
+          subject_name?: string | null
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_closed?: boolean
+          created_at?: string
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          is_running?: boolean
+          kind?: string
+          notes?: string | null
+          started_at?: string
+          subject_id?: string | null
+          subject_name?: string | null
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+          weekly_target_hours: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+          weekly_target_hours?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+          weekly_target_hours?: number
+        }
+        Relationships: []
+      }
+      targets: {
+        Row: {
+          created_at: string
+          daily_hours: number
+          deadline: string | null
+          id: string
+          is_active: boolean
+          subject_id: string | null
+          title: string
+          user_id: string
+          weekly_hours: number
+        }
+        Insert: {
+          created_at?: string
+          daily_hours?: number
+          deadline?: string | null
+          id?: string
+          is_active?: boolean
+          subject_id?: string | null
+          title: string
+          user_id: string
+          weekly_hours?: number
+        }
+        Update: {
+          created_at?: string
+          daily_hours?: number
+          deadline?: string | null
+          id?: string
+          is_active?: boolean
+          subject_id?: string | null
+          title?: string
+          user_id?: string
+          weekly_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "targets_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_blocks: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          kind: string
+          location: string | null
+          start_time: string
+          subject_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          kind?: string
+          location?: string | null
+          start_time: string
+          subject_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          kind?: string
+          location?: string | null
+          start_time?: string
+          subject_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_blocks_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          ai_autopilot: boolean
+          ai_tone: string
+          auto_stop_hours: number
+          daily_goal_hours: number
+          updated_at: string
+          user_id: string
+          week_starts_monday: boolean
+          weekly_goal_hours: number
+        }
+        Insert: {
+          ai_autopilot?: boolean
+          ai_tone?: string
+          auto_stop_hours?: number
+          daily_goal_hours?: number
+          updated_at?: string
+          user_id: string
+          week_starts_monday?: boolean
+          weekly_goal_hours?: number
+        }
+        Update: {
+          ai_autopilot?: boolean
+          ai_tone?: string
+          auto_stop_hours?: number
+          daily_goal_hours?: number
+          updated_at?: string
+          user_id?: string
+          week_starts_monday?: boolean
+          weekly_goal_hours?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      close_stale_sessions: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
