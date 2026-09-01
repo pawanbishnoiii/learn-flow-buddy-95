@@ -71,10 +71,11 @@ function StudyModePage() {
     };
   }, []);
 
-  /** Auto-fill subject + kind from the timetable block covering the current time. */
+  /** Auto-fill subject + kind from the timetable block covering the current time or selected by URL. */
   useEffect(() => {
-    if (running.data || form.subject_id || form.subject_name) return;
-    const b = currentBlock(blocks.data ?? []);
+    if (running.data || form.subject_id || form.subject_name || !blocks.data) return;
+    const selected = search.block ? blocks.data.find((b) => b.id === search.block) : null;
+    const b = selected || currentBlock(blocks.data);
     if (b) {
       setForm((f) => ({
         ...f,
@@ -85,7 +86,7 @@ function StudyModePage() {
         planned_end_at: b.end_time,
       }));
     }
-  }, [blocks.data, running.data, form.subject_id, form.subject_name]);
+  }, [blocks.data, running.data, form.subject_id, form.subject_name, search.block]);
 
   const start = useMutation({
     mutationFn: async () => {
