@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
@@ -36,6 +37,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -97,6 +103,7 @@ const ApiPublicCronRoute = ApiPublicCronRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/welcome': typeof WelcomeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/history': typeof AuthenticatedHistoryRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/welcome': typeof WelcomeRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/history': typeof AuthenticatedHistoryRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/welcome': typeof WelcomeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/welcome'
     | '/admin'
     | '/assistant'
     | '/history'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/welcome'
     | '/admin'
     | '/assistant'
     | '/history'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/welcome'
     | '/_authenticated/admin'
     | '/_authenticated/assistant'
     | '/_authenticated/history'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  WelcomeRoute: typeof WelcomeRoute
   ApiPublicCronRoute: typeof ApiPublicCronRoute
 }
 
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  WelcomeRoute: WelcomeRoute,
   ApiPublicCronRoute: ApiPublicCronRoute,
 }
 export const routeTree = rootRouteImport
