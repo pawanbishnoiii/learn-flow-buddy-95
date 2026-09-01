@@ -17,9 +17,6 @@ import {
 } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/study")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    block: typeof search["block"] === "string" ? search["block"] : undefined,
-  }),
   head: () => ({
     meta: [
       { title: "Study Mode — Chronodeck" },
@@ -41,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/study")({
 function StudyModePage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const search = useSearch({ from: "/_authenticated/study" });
+  const search = useSearch({ from: "/_authenticated/study" }) as { block?: string };
   const [controls, setControls] = useState(true);
   const [stopped, setStopped] = useState(false);
   const [saving, setSaving] = useState(false);

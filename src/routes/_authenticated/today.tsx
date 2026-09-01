@@ -256,7 +256,7 @@ function TodayPage() {
           </div>
 
           <button
-            onClick={() => navigate({ to: "/study", search: {} })}
+            onClick={() => navigate({ to: "/study" })}
             className="relative mt-5 h-14 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
           >
             {running.data ? "Back to running session" : "Start study"}
