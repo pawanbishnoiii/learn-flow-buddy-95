@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -38,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/study")({
 function StudyModePage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const search = useSearch({ from: "/_authenticated/study" });
   const [controls, setControls] = useState(true);
   const [stopped, setStopped] = useState(false);
   const [saving, setSaving] = useState(false);
