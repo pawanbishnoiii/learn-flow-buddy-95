@@ -609,3 +609,47 @@ export function subjectProgress(
     })
     .sort((a, b) => b.minutes - a.minutes);
 }
+
+/* ---------------- editing helpers (admin / history) ---------------- */
+
+export async function updateSubject(
+  id: string,
+  patch: Partial<Pick<Subject, "name" | "color" | "weekly_target_hours">>,
+) {
+  const { error } = await supabase.from("subjects").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateBlock(
+  id: string,
+  patch: Partial<Pick<Block, "title" | "kind" | "day_of_week" | "start_time" | "end_time" | "location" | "subject_id">>,
+) {
+  const { error } = await supabase.from("timetable_blocks").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateSession(
+  id: string,
+  patch: Partial<Pick<Session, "subject_name" | "topic" | "notes" | "kind" | "duration_minutes">>,
+) {
+  const { error } = await supabase.from("study_sessions").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteSession(id: string) {
+  const { error } = await supabase.from("study_sessions").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateBreak(
+  id: string,
+  patch: Partial<Pick<Break, "kind" | "note" | "duration_minutes">>,
+) {
+  const { error } = await supabase.from("session_breaks").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteBreak(id: string) {
+  const { error } = await supabase.from("session_breaks").delete().eq("id", id);
+  if (error) throw error;
+}
