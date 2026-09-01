@@ -453,11 +453,11 @@ export async function syncIdentityToProfile() {
   const patch: Partial<Profile> & { id: string } = { id: u.id };
   const existing = await fetchMyProfile();
   if (!existing?.avatar_url && (meta["avatar_url"] || meta["picture"]))
-    patch.avatar_url = meta["avatar_url"] ?? meta["picture"];
+    patch.avatar_url = (meta["avatar_url"] ?? meta["picture"]) || null;
   if (!existing?.display_name && (meta["full_name"] || meta["name"]))
-    patch.display_name = meta["full_name"] ?? meta["name"];
-  if (!existing?.first_name && meta["given_name"]) patch.first_name = meta["given_name"];
-  if (!existing?.last_name && meta["family_name"]) patch.last_name = meta["family_name"];
+    patch.display_name = (meta["full_name"] ?? meta["name"]) || null;
+  if (!existing?.first_name && meta["given_name"]) patch.first_name = meta["given_name"] || null;
+  if (!existing?.last_name && meta["family_name"]) patch.last_name = meta["family_name"] || null;
   const { data: saved, error } = await supabase
     .from("profiles")
     .upsert(patch, { onConflict: "id" })
