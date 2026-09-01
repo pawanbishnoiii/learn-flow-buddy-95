@@ -1,17 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { Icon3D } from "@/components/Icon3D";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Chronodeck — AI Study OS" },
+      { title: "Chronodeck — AI Study OS for focused learners" },
       {
         name: "description",
-        content: "Track study time, build your timetable, set targets and let AI coach your schedule.",
+        content:
+          "Focus timer, weekly timetable, targets and an AI coach that reads your real study data and tells you what to do next.",
       },
       { property: "og:title", content: "Chronodeck — AI Study OS" },
       {
         property: "og:description",
-        content: "Personal study timer, timetable and AI manager for serious learners.",
+        content: "Track study time, plan your week, log breaks and let AI manage your study routine.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -21,8 +24,41 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let ctx: { revert: () => void } | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import("gsap");
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      if (cancelled) return;
+      gsap.registerPlugin(ScrollTrigger);
+      ctx = gsap.context(() => {
+        gsap.from(".hero-line", { y: 40, opacity: 0, duration: 0.9, stagger: 0.12, ease: "power3.out" });
+        gsap.from(".hero-icon", { scale: 0.6, opacity: 0, duration: 1, ease: "back.out(1.7)", delay: 0.2 });
+        gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
+          gsap.from(el, {
+            y: 60,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: { trigger: el, start: "top 85%" },
+          });
+        });
+        gsap.utils.toArray<HTMLElement>(".float").forEach((el, i) => {
+          gsap.to(el, { y: -12, duration: 2 + i * 0.3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        });
+      }, root);
+    })();
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
+  }, []);
+
   return (
-    <div className="grid-lines flex min-h-screen flex-col">
+    <div ref={root} className="grid-lines min-h-screen">
       <header className="flex items-center justify-between px-5 pt-5">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-lg bg-brand/10">
@@ -37,49 +73,94 @@ function LandingPage() {
         </div>
         <Link
           to="/auth"
-          className="h-9 rounded-xl border border-border px-4 text-sm font-medium leading-9 transition-colors hover:border-brand/50"
+          className="h-9 rounded-xl border border-border px-4 text-sm leading-9 font-medium transition-colors hover:border-brand/50"
         >
           Sign in
         </Link>
       </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center px-5 text-center">
-        <div className="max-w-xl">
-          <p className="font-mono text-[11px] tracking-[0.25em] text-brand uppercase">AI-powered study tracker</p>
-          <h1 className="mt-4 text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-            Time your study. Build your timetable. Let AI coach your day.
-          </h1>
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Chronodeck runs a live study timer in the background, saves every session with subject and topic, and uses
-            an AI manager to compare your real hours against targets and timetable.
-          </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              to="/auth"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-brand px-8 text-sm font-semibold text-brand-foreground transition-opacity hover:opacity-90"
-            >
-              Start studying
-            </Link>
-            <span className="font-mono text-[10px] text-muted-foreground">Google sign-in · free to use</span>
+      <main className="mx-auto max-w-3xl px-5">
+        <section className="flex min-h-[80vh] flex-col items-center justify-center text-center">
+          <div className="hero-icon float">
+            <Icon3D name="clock" size={110} priority />
           </div>
-        </div>
+          <p className="hero-line mt-8 font-mono text-[11px] tracking-[0.3em] text-brand uppercase">
+            AI-powered study tracker
+          </p>
+          <h1 className="hero-line mt-4 text-4xl leading-[1.05] font-semibold tracking-tight sm:text-6xl">
+            Time your study.
+            <br />
+            Let AI run your routine.
+          </h1>
+          <p className="hero-line mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground">
+            Full-screen focus timer, weekly timetable grid, break log, target charts and an AI coach that reads
+            your real hours — not your intentions.
+          </p>
+          <Link
+            to="/auth"
+            className="hero-line mt-8 inline-flex h-13 items-center justify-center rounded-2xl bg-brand px-9 text-sm font-semibold text-brand-foreground transition-transform hover:scale-[1.03]"
+          >
+            Start studying free
+          </Link>
+          <span className="hero-line mt-3 font-mono text-[10px] text-muted-foreground">
+            Google sign-in · runs in the background
+          </span>
+        </section>
 
-        <div className="mt-12 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3">
+        <section className="grid gap-4 py-16 sm:grid-cols-3">
           {[
-            { n: "01", t: "Live timer", d: "Start a session and it keeps running even if you close the app." },
-            { n: "02", t: "Timetable", d: "Schedule reading blocks and online classes for every weekday." },
-            { n: "03", t: "AI coach", d: "Ask the AI why you're behind and what to focus on next." },
+            { i: "clock" as const, t: "Focus mode", d: "Black screen, HH:MM timer, swipe for pause and stop." },
+            { i: "calendar" as const, t: "Weekly grid", d: "Pick each day's subjects, classes and reading blocks." },
+            { i: "brain" as const, t: "AI manager", d: "It reads your sessions and tells you what to fix." },
           ].map((f) => (
-            <div key={f.n} className="rounded-2xl border border-border bg-panel p-5 text-left">
-              <span className="font-mono text-[10px] text-brand">{f.n}</span>
-              <h3 className="mt-2 text-sm font-semibold">{f.t}</h3>
+            <div key={f.t} className="reveal rounded-3xl border border-border bg-panel p-6">
+              <div className="float">
+                <Icon3D name={f.i} size={48} />
+              </div>
+              <h3 className="mt-4 text-sm font-semibold">{f.t}</h3>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.d}</p>
             </div>
           ))}
-        </div>
+        </section>
+
+        <section className="reveal rounded-3xl border border-brand/25 bg-brand/5 p-8 text-center">
+          <Icon3D name="trophy" size={64} className="mx-auto" />
+          <h2 className="mt-5 text-2xl font-semibold tracking-tight">Padhne ka mann banega</h2>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+            Daily motivation, monthly magazine reading picks and streak-style analytics keep the habit alive —
+            not just another timer.
+          </p>
+        </section>
+
+        <section className="grid gap-4 py-16 sm:grid-cols-2">
+          {[
+            { i: "target" as const, t: "Targets that mean something", d: "Daily and weekly hour goals per subject with deadline tracking and completion rings." },
+            { i: "books" as const, t: "Every session logged", d: "Subject, topic, notes and break log saved automatically when you exit focus mode." },
+            { i: "break" as const, t: "Break log", d: "Pause, sleep or free time — track the gaps, not just the grind." },
+            { i: "magazine" as const, t: "Monthly reading", d: "A fresh magazine recommendation each month to widen your base." },
+          ].map((f) => (
+            <div key={f.t} className="reveal flex gap-4 rounded-3xl border border-border bg-panel p-6">
+              <Icon3D name={f.i} size={44} />
+              <div>
+                <h3 className="text-sm font-semibold">{f.t}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.d}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section className="reveal flex flex-col items-center py-16 text-center">
+          <h2 className="text-3xl font-semibold tracking-tight">Aaj se shuru karo</h2>
+          <Link
+            to="/auth"
+            className="mt-6 inline-flex h-13 items-center justify-center rounded-2xl bg-brand px-9 text-sm font-semibold text-brand-foreground"
+          >
+            Sign in with Google
+          </Link>
+        </section>
       </main>
 
-      <footer className="px-5 py-5 text-center font-mono text-[10px] text-muted-foreground">
+      <footer className="px-5 py-8 text-center font-mono text-[10px] text-muted-foreground">
         © {new Date().getFullYear()} Chronodeck · Built for focused learners
       </footer>
     </div>
