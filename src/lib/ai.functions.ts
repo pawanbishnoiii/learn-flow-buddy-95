@@ -80,7 +80,7 @@ const AskSchema = z.object({ message: z.string().min(1).max(2000) });
 
 export const askStudyAi = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator({ adapter: AskSchema.parse })
+  .validator(AskSchema)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as unknown as Ctx;
     const ctx = await buildStudyContext({ supabase, userId });
