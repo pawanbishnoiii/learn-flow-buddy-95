@@ -78,18 +78,6 @@ function TimetablePage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["blocks"] }),
   });
 
-  const quickStart = useMutation({
-    mutationFn: (b: Block) =>
-      startSession({
-        subject_id: b.subject_id,
-        subject_name: b.title,
-        topic: null,
-        kind: b.kind === "class" ? "class" : "reading",
-      }),
-    onSuccess: () => toast.success("Timer started — open Today"),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const all = blocks.data ?? [];
   const dayBlocks = all.filter((b) => b.day_of_week === day);
 
