@@ -26,6 +26,38 @@ export const Route = createFileRoute("/_authenticated/assistant")({
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
 function AssistantPage() {
+  const admin = useQuery({ queryKey: ["is-admin"], queryFn: isAdmin });
+
+  if (admin.isLoading) {
+    return (
+      <AppShell>
+        <p className="px-5 py-8 text-sm text-muted-foreground">Checking access…</p>
+      </AppShell>
+    );
+  }
+  if (!admin.data) {
+    return (
+      <AppShell>
+        <section className="px-5 py-10 text-center">
+          <h1 className="text-lg font-semibold tracking-tight">Admin only</h1>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+            The AI study manager is available to administrators only.
+          </p>
+          <Link
+            to="/today"
+            className="mt-5 inline-flex h-11 items-center rounded-xl bg-brand px-5 text-sm font-semibold text-brand-foreground"
+          >
+            Back to dashboard
+          </Link>
+        </section>
+      </AppShell>
+    );
+  }
+
+  return <AssistantChat />;
+}
+
+function AssistantChat() {
   const qc = useQueryClient();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
