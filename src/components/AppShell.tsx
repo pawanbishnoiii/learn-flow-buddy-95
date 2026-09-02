@@ -102,6 +102,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
+          <CinematicThemeSwitcher />
+
           {streak > 2 ? (
             <span
               title={`${streak} day streak`}
