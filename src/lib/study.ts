@@ -196,6 +196,49 @@ export async function discardSession(id: string) {
   if (error) throw error;
 }
 
+/** Manually log a finished reading / class session with explicit start + exit time. */
+export async function createManualSession(input: {
+  subject_id: string | null;
+  subject_name: string | null;
+  topic: string | null;
+  notes: string | null;
+  kind: string;
+  started_at: string;
+  ended_at: string;
+}) {
+  const user_id = await uid();
+  const minutes = Math.max(
+    1,
+    Math.round((new Date(input.ended_at).getTime() - new Date(input.started_at).getTime()) / 60000),
+  );
+  const { error } = await supabase.from("study_sessions").insert({
+    ...input,
+    user_id,
+    is_running: false,
+    duration_minutes: minutes,
+  } as any);
+  if (error) throw error;
+}
+
+/** Manually log a finished break with explicit start + exit time. */
+export async function createManualBreak(input: {
+  kind: string;
+  note: string | null;
+  started_at: string;
+  ended_at: string;
+}) {
+  const user_id = await uid();
+  const minutes = Math.max(
+    1,
+    Math.round((new Date(input.ended_at).getTime() - new Date(input.started_at).getTime()) / 60000),
+  );
+  const { error } = await supabase
+    .from("session_breaks")
+    .insert({ ...input, user_id, session_id: null, duration_minutes: minutes } as any);
+  if (error) throw error;
+}
+
+
 export async function fetchBlocks(): Promise<Block[]> {
   const { data, error } = await supabase
     .from("timetable_blocks")
