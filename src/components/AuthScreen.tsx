@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { GoogleOneTap } from "@/components/GoogleOneTap";
+import { GoogleOneTap, promptGoogleOneTap } from "@/components/GoogleOneTap";
+import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher";
+import { RadialBackground } from "@/components/ui/light-theme-tailwind-css-background-snippet";
 
 function GoogleMark() {
   return (
@@ -64,6 +66,12 @@ export function AuthScreen() {
   async function google() {
     setBusy(true);
     try {
+      // Preferred path: Google One Tap card — no page redirect at all.
+      const shown = await promptGoogleOneTap();
+      if (shown) {
+        setBusy(false);
+        return;
+      }
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
@@ -125,18 +133,7 @@ export function AuthScreen() {
   return (
     <div className="grid-lines relative flex min-h-[100svh] flex-col overflow-hidden bg-background px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <GoogleOneTap />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 size-[520px] -translate-x-1/2 rounded-full bg-brand/10 blur-[130px]"
-        animate={{ x: [0, 30, -20, 0], y: [0, 24, -12, 0] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-40 -right-24 size-[420px] rounded-full bg-warm/[0.07] blur-[140px]"
-        animate={{ x: [0, -24, 16, 0], y: [0, -18, 10, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-      />
+      <RadialBackground />
 
       <motion.header
         initial={{ opacity: 0, y: -12 }}
@@ -155,6 +152,9 @@ export function AuthScreen() {
           <span className="mt-1 block font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
             Study OS
           </span>
+        </span>
+        <span className="ml-auto">
+          <CinematicThemeSwitcher />
         </span>
       </motion.header>
 

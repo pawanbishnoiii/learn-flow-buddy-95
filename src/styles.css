@@ -94,10 +94,6 @@
   --ring: rgb(79 70 229 / 0.35);
 }
 
-.dark {
-  color-scheme: light;
-}
-
 @layer base {
   * {
     border-color: var(--color-border);
@@ -106,6 +102,11 @@
   html {
     color-scheme: light;
   }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
 
   body {
     background-color: var(--color-background);
@@ -360,4 +361,56 @@
   .shimmer::after {
     animation: none !important;
   }
+}
+
+/* ---------- Night mode ---------- */
+.dark {
+  --background: #0b0d12;
+  --foreground: #e8ecf4;
+  --panel: #14161c;
+  --brand: #6366f1;
+  --brand-foreground: #ffffff;
+  --warm: #fbbf24;
+
+  --card: #14161c;
+  --card-foreground: #e8ecf4;
+  --popover: #14161c;
+  --popover-foreground: #e8ecf4;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #1b1e26;
+  --secondary-foreground: #e8ecf4;
+  --muted: #1b1e26;
+  --muted-foreground: #94a3b8;
+  --accent: #1e213a;
+  --accent-foreground: #c7d2fe;
+  --destructive: #fb7185;
+  --destructive-foreground: #0b0d12;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.12);
+  --ring: rgb(99 102 241 / 0.45);
+
+  --bg-base: #14161c;
+  --bg-elevated: #1b1e26;
+  --border-subtle: rgb(255 255 255 / 0.07);
+  --accent-start: #6366f1;
+  --accent-end: #22d3ee;
+  --accent-ai: #a78bfa;
+  --text-primary: #e8ecf4;
+  --text-muted: #94a3b8;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px -18px rgb(0 0 0 / 0.8);
+  --shadow-hover: 0 2px 8px rgb(0 0 0 / 0.55), 0 20px 40px -20px rgb(0 0 0 / 0.9);
+  --shadow-glow: 0 0 0 6px rgb(99 102 241 / 0.22);
+}
+
+.dark .app-backdrop {
+  background-image:
+    radial-gradient(120% 60% at 50% -10%, color-mix(in oklab, var(--accent-start) 16%, transparent), transparent 70%),
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+}
+
+.dark .shimmer::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.07), transparent);
 }

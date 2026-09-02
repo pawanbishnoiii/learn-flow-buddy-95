@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const SDK_SRC = "https://accounts.google.com/gsi/client";
-const CLIENT_ID = import.meta.env["VITE_GOOGLE_CLIENT_ID"] as string | undefined;
+export const GOOGLE_CLIENT_ID = (import.meta.env["VITE_GOOGLE_CLIENT_ID"] as string | undefined)?.trim();
 
 declare global {
   interface Window {
@@ -19,6 +19,17 @@ function loadSdk(): Promise<void> {
     if (existing) {
       existing.addEventListener("load", () => resolve());
       existing.addEventListener("error", () => reject(new Error("gsi failed")));
+      // The root already injects the tag; poll in case it loaded before we attached.
+      const started = Date.now();
+      const tick = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(tick);
+          resolve();
+        } else if (Date.now() - started > 8000) {
+          clearInterval(tick);
+          reject(new Error("gsi timeout"));
+        }
+      }, 120);
       return;
     }
     const s = document.createElement("script");
@@ -31,51 +42,68 @@ function loadSdk(): Promise<void> {
   });
 }
 
+let initialized = false;
+
+async function initOneTap(onSignedIn?: () => void) {
+  if (!GOOGLE_CLIENT_ID) return false;
+  await loadSdk();
+  if (!window.google?.accounts?.id) return false;
+  if (!initialized) {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      auto_select: false,
+      cancel_on_tap_outside: false,
+      itp_support: true,
+      use_fedcm_for_prompt: true,
+      ux_mode: "popup",
+      callback: async (response: { credential?: string }) => {
+        if (!response?.credential) return;
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: response.credential,
+        });
+        if (error) {
+          toast.error("Google sign-in failed. Try again.");
+          return;
+        }
+        onSignedIn?.();
+      },
+    });
+    initialized = true;
+  }
+  return true;
+}
+
+/** Opens the One Tap card (top-right). Resolves false when it can't be shown. */
+export async function promptGoogleOneTap(onSignedIn?: () => void): Promise<boolean> {
+  try {
+    const ready = await initOneTap(onSignedIn);
+    if (!ready) return false;
+    window.google.accounts.id.prompt();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Google One Tap — no full-page redirect.
- * Shows the native One Tap prompt (top-right) for signed-out visitors and
- * exchanges the returned Google JWT for a Supabase session in the background.
+ * Shows the native One Tap prompt for signed-out visitors and exchanges the
+ * returned Google JWT for a session in the background.
  * Silently does nothing when VITE_GOOGLE_CLIENT_ID is not configured.
  */
 export function GoogleOneTap({ onSignedIn }: { onSignedIn?: () => void }) {
   const started = useRef(false);
 
   useEffect(() => {
-    if (started.current || !CLIENT_ID) return;
+    if (started.current || !GOOGLE_CLIENT_ID) return;
     started.current = true;
     let cancelled = false;
 
     (async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (data.session || cancelled) return;
-        await loadSdk();
-        if (cancelled || !window.google?.accounts?.id) return;
-
-        window.google.accounts.id.initialize({
-          client_id: CLIENT_ID,
-          auto_select: false,
-          cancel_on_tap_outside: true,
-          use_fedcm_for_prompt: true,
-          callback: async (response: { credential?: string }) => {
-            if (!response?.credential) return;
-            const { error } = await supabase.auth.signInWithIdToken({
-              provider: "google",
-              token: response.credential,
-            });
-            if (error) {
-              toast.error("Google sign-in failed. Try the button below.");
-              return;
-            }
-            onSignedIn?.();
-          },
-        });
-
-        // Prompt failures (dismissed, unsupported, cooldown) must never break the UI.
-        window.google.accounts.id.prompt();
-      } catch {
-        /* One Tap unavailable — the regular Google button still works. */
-      }
+      const { data } = await supabase.auth.getSession();
+      if (data.session || cancelled) return;
+      await promptGoogleOneTap(onSignedIn);
     })();
 
     return () => {
