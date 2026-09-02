@@ -94,10 +94,6 @@
   --ring: rgb(79 70 229 / 0.35);
 }
 
-.dark {
-  color-scheme: light;
-}
-
 @layer base {
   * {
     border-color: var(--color-border);
@@ -106,6 +102,11 @@
   html {
     color-scheme: light;
   }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
 
   body {
     background-color: var(--color-background);
