@@ -194,6 +194,8 @@ function AdminPage() {
         </section>
 
         <SiteSettings />
+        <EmailDelivery />
+
 
 
 
