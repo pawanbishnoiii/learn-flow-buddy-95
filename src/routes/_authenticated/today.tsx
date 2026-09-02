@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -16,8 +15,8 @@ import {
   YAxis,
 } from "recharts";
 import { FocusMode } from "@/components/FocusMode";
+import { CountUp, Reveal, StaggerGrid, useIdleGlow } from "@/components/motion/gsap-bits";
 import { Icon3D } from "@/components/Icon3D";
-import { getDailyInsight } from "@/lib/ai.functions";
 import {
   DAYS,
   dailyMinutes,
@@ -32,13 +31,14 @@ import {
   fetchSettings,
   fetchSubjects,
   fetchTargets,
+  fmtHM,
   hourlyHeat,
   localTimeToIsoToday,
   minutesInRange,
   monthlyHistory,
-  isAdmin,
   reorderBlocks,
   subjectProgress,
+  updateSubject,
   startBreak,
   startOfToday,
   startOfWeek,
@@ -85,7 +85,6 @@ function TodayPage() {
   const blocks = useQuery({ queryKey: ["blocks"], queryFn: fetchBlocks });
   const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
   const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
-  const admin = useQuery({ queryKey: ["is-admin"], queryFn: isAdmin });
   const motivations = useQuery({ queryKey: ["motivations"], queryFn: fetchMotivations, staleTime: 60 * 60_000 });
   const breaks = useQuery({
     queryKey: ["breaks"],
@@ -94,15 +93,6 @@ function TodayPage() {
   const sessions = useQuery({
     queryKey: ["sessions", "8w"],
     queryFn: () => fetchSessions(EIGHT_WEEKS),
-  });
-
-  const insightFn = useServerFn(getDailyInsight);
-  const insight = useQuery({
-    queryKey: ["insight"],
-    queryFn: () => insightFn({}),
-    staleTime: 15 * 60_000,
-    retry: false,
-    enabled: admin.data === true,
   });
 
   const all = sessions.data ?? [];
