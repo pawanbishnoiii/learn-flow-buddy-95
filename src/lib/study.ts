@@ -291,6 +291,14 @@ export async function createTarget(input: {
   if (error) throw error;
 }
 
+export async function updateTarget(
+  id: string,
+  patch: Partial<Pick<Target, "title" | "daily_hours" | "weekly_hours" | "deadline" | "subject_id">>,
+) {
+  const { error } = await supabase.from("targets").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
 export async function toggleTarget(id: string, is_active: boolean) {
   const { error } = await supabase.from("targets").update({ is_active }).eq("id", id);
   if (error) throw error;
@@ -718,6 +726,7 @@ export type AppSettings = {
   support_email: string | null;
   banner_text: string | null;
   ai_enabled: boolean;
+  manual_log_enabled: boolean;
   landing_enabled: boolean;
   maintenance_note: string | null;
 };
@@ -725,7 +734,7 @@ export type AppSettings = {
 export async function fetchAppSettings(): Promise<AppSettings | null> {
   const { data, error } = await supabase
     .from("app_settings")
-    .select("site_name,tagline,support_email,banner_text,ai_enabled,landing_enabled,maintenance_note")
+    .select("site_name,tagline,support_email,banner_text,ai_enabled,manual_log_enabled,landing_enabled,maintenance_note")
     .maybeSingle();
   if (error) throw error;
   return (data as AppSettings) ?? null;
