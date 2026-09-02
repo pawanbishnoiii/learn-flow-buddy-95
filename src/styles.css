@@ -264,9 +264,18 @@
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-card) !important;
+  transition: box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 
 /* Level 2 surface — raised elements inside a card (chips wells, sheets). */
+@utility lift {
+  transition: box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  &:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+}
+
 @utility card-raised {
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
@@ -291,7 +300,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgb(255 255 255 / 0.07),
+      rgb(15 23 42 / 0.06),
       transparent
     );
     animation: cd-shimmer 1.6s var(--ease-in-out) infinite;
