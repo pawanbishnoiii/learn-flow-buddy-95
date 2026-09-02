@@ -161,27 +161,27 @@
   font-size: 0.875rem;
 }
 
-/* ---------- Chronodeck cockpit layer: glass, gradients, motion ---------- */
+/* ---------- Chronodeck cockpit layer: surfaces, gradients, motion ---------- */
 :root {
   /* surfaces — exactly two elevation levels */
-  --bg-base: #14161c;
-  --bg-elevated: #1b1e26;
-  --border-subtle: rgb(255 255 255 / 0.06);
+  --bg-base: #ffffff;
+  --bg-elevated: #f8fafc;
+  --border-subtle: rgb(15 23 42 / 0.06);
   --blur-glass: 20px;
 
-  /* accent */
-  --accent-start: #34d399;
-  --accent-end: #22d3ee;
-  --accent-ai: #a78bfa;
+  /* accent — indigo → blue, primary CTA / active nav / fills / chart line */
+  --accent-start: #4f46e5;
+  --accent-end: #2563eb;
+  --accent-ai: #7c3aed;
 
   /* semantic states */
-  --state-hit: #34d399;
-  --state-partial: #fbbf24;
-  --state-missed: #fb7185;
+  --state-hit: #059669;
+  --state-partial: #d97706;
+  --state-missed: #e11d48;
 
   /* text */
-  --text-primary: #f5f5f7;
-  --text-muted: #9ca3af;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
 
   /* spacing scale */
   --space-1: 4px;
@@ -191,9 +191,10 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* elevation */
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
-  --shadow-glow: 0 0 28px 2px rgb(52 211 153 / 0.28);
+  /* elevation — soft shadows instead of harsh borders */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 8px 24px -16px rgb(15 23 42 / 0.18);
+  --shadow-hover: 0 2px 6px rgb(15 23 42 / 0.07), 0 16px 32px -18px rgb(15 23 42 / 0.24);
+  --shadow-glow: 0 0 0 6px rgb(79 70 229 / 0.14);
 
   /* motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -202,29 +203,28 @@
   --dur-base: 0.4s;
   --dur-slow: 0.8s;
 
-  /* map core surfaces onto the new palette */
-  --background: #0b0d12;
-  --foreground: #f4f6fa;
-  --panel: #14161c;
-  --card: #14161c;
-  --popover: #1b1e26;
-  --muted-foreground: #9aa3b2;
-  --border: rgb(255 255 255 / 0.07);
+  /* map core surfaces onto the light palette */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --muted-foreground: #64748b;
+  --border: rgb(15 23 42 / 0.07);
 }
 
-/* Ambient app backdrop: fine grid + one soft emerald wash at the top.
-   No floating blobs, no purple haze. */
+/* Ambient app backdrop: fine slate grid + one soft indigo wash at the top. */
 @utility app-backdrop {
   position: relative;
-  background-color: var(--bg-base);
+  background-color: var(--background);
   background-image:
     radial-gradient(
       120% 60% at 50% -10%,
-      color-mix(in oklab, var(--accent-start) 10%, transparent),
+      color-mix(in oklab, var(--accent-start) 8%, transparent),
       transparent 70%
     ),
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgb(15 23 42 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.035) 1px, transparent 1px);
   background-size:
     100% 100%,
     48px 48px,
