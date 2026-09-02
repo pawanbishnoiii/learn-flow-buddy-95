@@ -252,8 +252,6 @@ export function AuthScreen() {
             </button>
           </div>
         </motion.div>
-
-        </motion.div>
       </main>
 
       <motion.footer
