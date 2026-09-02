@@ -24,6 +24,8 @@ import {
   syncIdentityToProfile,
 } from "@/lib/study";
 import { dailyHitStreak } from "@/lib/streak";
+import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher";
+
 
 const NAV = [
   { to: "/today", label: "Home", Icon: LayoutDashboard },
