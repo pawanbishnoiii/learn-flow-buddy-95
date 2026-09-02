@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     (profile.data?.last_name?.[0] ?? "T");
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="app-backdrop flex min-h-screen flex-col text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 px-4 pt-4 pb-3 backdrop-blur-xl sm:px-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
         <Link to="/today" className="flex min-w-0 items-center gap-3">
