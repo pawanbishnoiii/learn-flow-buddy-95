@@ -934,7 +934,7 @@ function MonthGrid({ perDay, dailyGoal }: { perDay: Record<string, number>; dail
           return (
             <div
               key={dayKey(d)}
-              title={`${d.getDate()} · ${(mins / 60).toFixed(1)}h`}
+              title={`${d.getDate()} · ${fmtHM(mins)}`}
               className={`grid aspect-square place-items-center rounded-md font-mono text-[9px] transition-colors ${
                 isToday ? "outline-1 -outline-offset-1 outline-brand" : ""
               }`}
