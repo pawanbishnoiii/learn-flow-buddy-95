@@ -82,7 +82,7 @@ function ProfilePage() {
   return (
     <>
       <div className="space-y-6 px-5 py-6">
-        <section className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-3xl border border-border bg-panel p-5 sm:flex sm:justify-between">
+        <section className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-border bg-panel p-5 sm:flex sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             {profile.data?.avatar_url ? (
               <img
@@ -125,7 +125,7 @@ function ProfilePage() {
           ))}
         </section>
 
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <h2 className="text-sm font-semibold">Personal details</h2>
           <div className="mt-4 grid grid-cols-2 gap-2">
             <input

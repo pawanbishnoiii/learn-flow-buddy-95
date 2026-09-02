@@ -311,7 +311,7 @@ function LandingPage() {
           ].map((f) => (
             <div
               key={f.t}
-              className="rounded-3xl border border-border bg-panel p-6 transition-all hover:-translate-y-1 hover:border-brand/40"
+              className="rounded-2xl border border-border bg-panel p-6 transition-all hover:-translate-y-1 hover:border-brand/40"
             >
               <div className="float">
                 <Icon3D name={f.i} size={48} />
@@ -353,7 +353,7 @@ function LandingPage() {
           ].map((f) => (
             <div
               key={f.t}
-              className="flex gap-4 rounded-3xl border border-border bg-panel p-6 transition-all hover:-translate-y-1 hover:border-brand/40"
+              className="flex gap-4 rounded-2xl border border-border bg-panel p-6 transition-all hover:-translate-y-1 hover:border-brand/40"
             >
               <Icon3D name={f.i} size={44} />
               <div>

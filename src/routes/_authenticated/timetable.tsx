@@ -171,7 +171,7 @@ function TimetablePage() {
         {view === "calendar" ? (
           <CalendarWeek blocks={all} onPick={(d) => setDay(d)} onStart={startBlock} />
         ) : (
-          <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+          <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-sm font-semibold">{DAYS[day]} schedule</h2>
               <button
@@ -376,7 +376,7 @@ function CalendarWeek({
   const span = (endHour - startHour) * 60;
 
   return (
-    <section className="rounded-3xl border border-border bg-panel p-3 sm:p-4">
+    <section className="rounded-2xl border border-border bg-panel p-3 sm:p-4">
       <h2 className="text-sm font-semibold">Week calendar</h2>
       <div className="mt-3 overflow-x-auto">
         <div className="flex min-w-[560px] gap-1">

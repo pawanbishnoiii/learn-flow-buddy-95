@@ -15,7 +15,16 @@ import {
   YAxis,
 } from "recharts";
 import { FocusMode } from "@/components/FocusMode";
-import { CountUp, Reveal, StaggerGrid, useIdleGlow } from "@/components/motion/gsap-bits";
+import {
+  ChartDrawIn,
+  CountUp,
+  Reveal,
+  Shimmer,
+  StaggerGrid,
+  useIdleGlow,
+} from "@/components/motion/gsap-bits";
+import { Mascot, mascotState } from "@/components/Mascot";
+import { dailyHitStreak } from "@/lib/streak";
 import { Icon3D } from "@/components/Icon3D";
 import {
   DAYS,
@@ -113,6 +122,9 @@ function TodayPage() {
   const monthly = useMemo(() => monthlyHistory(all, weeklyGoal), [all, weeklyGoal]);
   const perDay = useMemo(() => dailyMinutes(all), [all]);
   const ctaRef = useIdleGlow<HTMLButtonElement>();
+  const noData = !sessions.isLoading && all.length === 0;
+  const streak = useMemo(() => dailyHitStreak(all, dailyGoal), [all, dailyGoal]);
+  const heroMood = mascotState({ goalHit: todayMin >= dailyGoal * 60, streak });
 
 
   const todayIdx = new Date().getDay();
@@ -249,14 +261,12 @@ function TodayPage() {
         />
       ) : null}
 
-      <div className="space-y-8 px-5 py-6">
-        {/* Hero */}
-        <section className="glass-panel relative overflow-hidden rounded-3xl p-6">
-          <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-[var(--accent-start)]/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-16 size-56 rounded-full bg-[var(--accent-end)]/12 blur-3xl" />
+      <div className="space-y-6 px-4 py-6">
+        {/* Hero — the one loud element on this screen */}
+        <section className="gradient-border relative overflow-hidden rounded-2xl p-6">
           <div className="relative flex items-start justify-between gap-4">
-            <div>
-              <p className="font-mono text-[10px] tracking-[0.3em] text-brand uppercase">Start study</p>
+            <div className="min-w-0">
+              <p className="num text-[10px] tracking-[0.3em] text-brand uppercase">Start study</p>
               <h1 className="mt-2 text-2xl leading-tight font-semibold tracking-tight">
                 {todayMin > 0 ? `${fmtHM(todayMin)} done today` : "Aaj ka pehla session shuru karo"}
               </h1>
@@ -265,10 +275,10 @@ function TodayPage() {
                 {Math.min(100, Math.round((todayMin / 60 / dailyGoal) * 100))}% complete
               </p>
             </div>
-            <Icon3D name="clock" size={64} priority className="float-soft" />
+            <Mascot state={heroMood} size={72} className="shrink-0" />
           </div>
 
-          <div className="relative mt-5 h-2.5 overflow-hidden rounded-full bg-background">
+          <div className="relative mt-6 h-2 overflow-hidden rounded-full bg-[var(--bg-elevated)]">
             <div
               className="gradient-bar h-full rounded-full transition-[width] duration-1000 ease-out"
               style={{ width: `${Math.min(100, (todayMin / 60 / dailyGoal) * 100)}%` }}
@@ -278,36 +288,44 @@ function TodayPage() {
           <button
             ref={ctaRef}
             onClick={() => navigate({ to: "/study" })}
-            className="gradient-bar relative mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-[#04140d] transition-transform active:scale-[0.98]"
+            className="gradient-bar relative mt-6 h-14 w-full rounded-xl text-sm font-semibold text-[#04140d] transition-transform active:scale-[0.98]"
           >
             {running.data ? "Back to running session" : "Start study"}
           </button>
         </section>
 
-        {/* Stats */}
+        {/* Stats — deliberately quiet next to the hero */}
         <section className="grid grid-cols-3 gap-3">
           {[
-            { label: "Today", minutes: todayMin, icon: "books" as const },
-            { label: "This week", minutes: weekMin, icon: "target" as const },
-            { label: "This month", minutes: monthMin, icon: "trophy" as const },
+            { label: "Today", minutes: todayMin },
+            { label: "This week", minutes: weekMin },
+            { label: "This month", minutes: monthMin },
           ].map((s) => (
-            <div key={s.label} className="glass-panel rounded-2xl p-4">
-              <span className="grid size-9 place-items-center rounded-xl bg-[linear-gradient(135deg,color-mix(in_oklab,var(--accent-start)_22%,transparent),color-mix(in_oklab,var(--accent-end)_16%,transparent))]">
-                <Icon3D name={s.icon} size={22} />
-              </span>
-              <p className="num mt-3 text-lg leading-none font-semibold">
-                <CountUp value={Math.floor(s.minutes / 60)} decimals={0} suffix="h" />
-                <span className="ml-1 text-xs text-muted-foreground">
-                  {String(Math.round(s.minutes % 60)).padStart(2, "0")}m
-                </span>
-              </p>
-              <p className="mt-1 text-[10px] tracking-wide text-muted-foreground uppercase">{s.label}</p>
+            <div key={s.label} className="glass-panel p-4">
+              {noData ? (
+                <>
+                  <Shimmer className="h-5 w-14" />
+                  <Shimmer className="mt-2 h-2.5 w-10" />
+                </>
+              ) : (
+                <>
+                  <p className="num text-lg leading-none font-semibold">
+                    <CountUp value={Math.floor(s.minutes / 60)} decimals={0} suffix="h" />
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {String(Math.round(s.minutes % 60)).padStart(2, "0")}m
+                    </span>
+                  </p>
+                  <p className="num mt-2 text-[10px] tracking-wide text-muted-foreground uppercase">
+                    {s.label}
+                  </p>
+                </>
+              )}
             </div>
           ))}
         </section>
 
         {/* Analytics calendar */}
-        <Reveal className="glass-panel rounded-3xl p-5">
+        <Reveal className="glass-panel rounded-2xl p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Icon3D name="calendar" size={32} />
@@ -342,7 +360,7 @@ function TodayPage() {
         </Reveal>
 
         {/* Hourly heatmap */}
-        <Reveal className="glass-panel rounded-3xl p-5">
+        <Reveal className="glass-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="clock" size={32} />
             <h2 className="text-sm font-semibold">Hour by hour</h2>
@@ -362,7 +380,7 @@ function TodayPage() {
         </Reveal>
 
         {/* Subject progress */}
-        <Reveal className="glass-panel rounded-3xl p-5">
+        <Reveal className="glass-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="books" size={32} />
             <h2 className="text-sm font-semibold">Subject progress</h2>
@@ -441,12 +459,12 @@ function TodayPage() {
         />
 
         {/* Weekly progress chart */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <h2 className="text-sm font-semibold">Weekly target progress</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Last 8 weeks vs your {weeklyGoal}h weekly goal
           </p>
-          <div className="mt-4 h-44">
+          <ChartDrawIn className="mt-4 h-44" deps={[history]}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={history}>
                 <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -465,11 +483,17 @@ function TodayPage() {
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="hours" fill="var(--brand)" radius={[6, 6, 0, 0]} />
-                <Line type="monotone" dataKey="goal" stroke="var(--warm)" dot={false} strokeDasharray="4 4" />
+                <Bar dataKey="hours" fill="rgba(255,255,255,0.14)" radius={[6, 6, 0, 0]} />
+                <Line
+                  type="monotone"
+                  dataKey="goal"
+                  stroke="var(--accent-end)"
+                  strokeWidth={2}
+                  dot={false}
+                />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartDrawIn>
           <div className="mt-3 h-20">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={history}>
@@ -486,7 +510,7 @@ function TodayPage() {
         </section>
 
         {/* Targets */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="target" size={32} />
             <h2 className="text-sm font-semibold">Targets</h2>
@@ -517,7 +541,7 @@ function TodayPage() {
         </section>
 
         {/* Tomorrow plan */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="books" size={32} />
             <h2 className="text-sm font-semibold">Next day plan</h2>
@@ -536,7 +560,7 @@ function TodayPage() {
         </section>
 
         {/* Breaks */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="break" size={32} />
             <h2 className="text-sm font-semibold">Break log</h2>
@@ -561,7 +585,7 @@ function TodayPage() {
         </section>
 
         {/* Monthly progress */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <h2 className="text-sm font-semibold">Monthly progress</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Last 6 months of real sessions vs your pro-rated goal
@@ -613,7 +637,7 @@ function TodayPage() {
         {/* Motivation + magazine */}
         <section className="grid gap-3">
           {quote ? (
-            <div className="rounded-3xl border border-border bg-panel p-5">
+            <div className="rounded-2xl border border-border bg-panel p-5">
               <div className="flex items-center gap-3">
                 <Icon3D name="trophy" size={32} />
                 <h2 className="text-sm font-semibold">{quote.title}</h2>
@@ -625,7 +649,7 @@ function TodayPage() {
             </div>
           ) : null}
           {magazine ? (
-            <div className="rounded-3xl border border-warm/25 bg-warm/5 p-5">
+            <div className="rounded-2xl border border-warm/25 bg-warm/5 p-5">
               <div className="flex items-center gap-3">
                 <Icon3D name="magazine" size={32} />
                 <h2 className="text-sm font-semibold">{magazine.title}</h2>
@@ -1037,7 +1061,7 @@ function DayPlanner({
   }
 
   return (
-    <section className="rounded-3xl border border-border bg-panel p-5">
+    <section className="rounded-2xl border border-border bg-panel p-5">
       <div className="flex items-center gap-3">
         <Icon3D name="calendar" size={32} />
         <h2 className="text-sm font-semibold">Day calendar</h2>

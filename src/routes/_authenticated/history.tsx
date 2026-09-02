@@ -269,7 +269,7 @@ function HistoryPage() {
         {sessions.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading history…</p>
         ) : grouped.length === 0 ? (
-          <div className="rounded-3xl border border-border bg-panel p-6 text-center">
+          <div className="rounded-2xl border border-border bg-panel p-6 text-center">
             <Icon3D name="clock" size={44} className="mx-auto" />
             <p className="mt-3 text-sm text-muted-foreground">
               No sessions yet. Start the timer and your history will build itself.

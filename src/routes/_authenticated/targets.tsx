@@ -2,7 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { fetchSubjects, fetchTargets, createTarget, toggleTarget, deleteTarget } from "@/lib/study";
+import {
+  fetchSubjects,
+  fetchTargets,
+  createTarget,
+  toggleTarget,
+  deleteTarget,
+  fetchSessions,
+  fetchSettings,
+  fmtHM,
+  minutesInRange,
+  startOfWeek,
+} from "@/lib/study";
+import { ProgressRing } from "@/components/motion/gsap-bits";
+
+const EIGHT_WEEKS = new Date(Date.now() - 8 * 7 * 864e5).toISOString();
 
 export const Route = createFileRoute("/_authenticated/targets")({
   head: () => ({
@@ -31,6 +45,12 @@ function TargetsPage() {
 
   const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
   const subjects = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
+  const sessions = useQuery({ queryKey: ["sessions", "8w"], queryFn: () => fetchSessions(EIGHT_WEEKS) });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
+
+  const weeklyGoal = settings.data?.weekly_goal_hours ?? 26;
+  const weekMin = minutesInRange(sessions.data ?? [], startOfWeek());
+  const weekPct = weeklyGoal > 0 ? Math.min(100, Math.round((weekMin / (weeklyGoal * 60)) * 100)) : 0;
 
   const createM = useMutation({
     mutationFn: createTarget,
@@ -59,7 +79,7 @@ function TargetsPage() {
 
   return (
     <>
-      <section className="px-5 pt-6">
+      <section className="px-4 pt-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Targets</h1>
@@ -69,10 +89,19 @@ function TargetsPage() {
           </div>
           <button
             onClick={() => setOpen(true)}
-            className="h-10 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground"
+            className="h-10 shrink-0 rounded-xl bg-brand px-4 text-sm font-semibold whitespace-nowrap text-brand-foreground"
           >
             New target
           </button>
+        </div>
+
+        {/* Hero — weekly completion ring */}
+        <div className="gradient-border mt-5 rounded-2xl p-6">
+          <ProgressRing
+            pct={weekPct}
+            label="This week"
+            sub={`${fmtHM(weekMin)} / ${fmtHM(weeklyGoal * 60)}`}
+          />
         </div>
       </section>
 

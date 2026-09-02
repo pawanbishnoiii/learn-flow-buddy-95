@@ -146,7 +146,7 @@ function AdminPage() {
     return (
       <>
         <div className="px-5 py-10">
-          <div className="rounded-3xl border border-border bg-panel p-6">
+          <div className="rounded-2xl border border-border bg-panel p-6">
             <Icon3D name="target" size={44} />
             <h1 className="mt-4 text-xl font-semibold tracking-tight">Admin only</h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -198,7 +198,7 @@ function AdminPage() {
 
 
         {/* Subjects editor */}
-        <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+        <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
           <h2 className="text-sm font-semibold">Subjects</h2>
           <ul className="mt-3 space-y-2">
             {(subjects.data ?? []).map((s) => (
@@ -265,7 +265,7 @@ function AdminPage() {
         </section>
 
         {/* Timetable editor */}
-        <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+        <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
           <h2 className="text-sm font-semibold">Timetable blocks</h2>
           <ul className="mt-3 space-y-2">
             {(blocks.data ?? []).map((b) => (
@@ -302,7 +302,7 @@ function AdminPage() {
           </ul>
         </section>
 
-        <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+        <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
           <h2 className="text-sm font-semibold">Subject load (all time)</h2>
           <ul className="mt-3 space-y-2">
             {rows.length ? (
@@ -320,7 +320,7 @@ function AdminPage() {
           </ul>
         </section>
 
-        <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+        <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
           <h2 className="text-sm font-semibold">Recent sessions</h2>
           <ul className="mt-3 space-y-2">
             {all.slice(0, 15).map((s) => (
@@ -474,7 +474,7 @@ function SiteSettings() {
 
   if (!value) {
     return (
-      <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+      <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
         <h2 className="text-sm font-semibold">Site settings</h2>
         <p className="mt-2 text-xs text-muted-foreground">Loading…</p>
       </section>
@@ -484,7 +484,7 @@ function SiteSettings() {
   const set = (patch: Partial<AppSettings>) => setDraft({ ...value, ...patch });
 
   return (
-    <section className="rounded-3xl border border-border bg-panel p-4 sm:p-5">
+    <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
       <h2 className="text-sm font-semibold">Site settings</h2>
       <p className="mt-1 text-xs text-muted-foreground">
         Global app identity and feature switches. User management stays off for now.
