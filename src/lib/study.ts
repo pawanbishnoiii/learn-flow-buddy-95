@@ -90,6 +90,16 @@ export function fmtHours(minutes: number) {
   return (minutes / 60).toFixed(1);
 }
 
+/** Always human hour:minute — e.g. 2h 05m, 45m. Never a decimal hour. */
+export function fmtHM(minutes: number) {
+  const total = Math.max(0, Math.round(minutes));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
+
 async function uid() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) throw new Error("Not signed in");
