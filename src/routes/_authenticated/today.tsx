@@ -997,7 +997,7 @@ function Sheet({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end bg-foreground/25 backdrop-blur-sm" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
         className="max-h-[88vh] w-full animate-[slide-in-right_0.001s] overflow-y-auto rounded-t-3xl border-t border-border bg-panel p-5 pb-8"

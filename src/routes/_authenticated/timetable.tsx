@@ -273,7 +273,7 @@ function TimetablePage() {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-end bg-foreground/25 backdrop-blur-sm" onClick={() => setOpen(false)}>
           <div
             onClick={(e) => e.stopPropagation()}
             className="max-h-[88vh] w-full overflow-y-auto rounded-t-3xl border-t border-border bg-panel p-5 pb-8"

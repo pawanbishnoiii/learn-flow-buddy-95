@@ -65,36 +65,37 @@
   --font-display-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono-family: "JetBrains Mono", ui-monospace, monospace;
 
-  --background: oklch(0.16 0.009 250);
-  --foreground: oklch(0.98 0.002 250);
-  --panel: oklch(0.22 0.012 250);
-  --brand: oklch(0.797 0.147 163.2);
-  --brand-foreground: oklch(0.17 0.02 165);
-  --warm: oklch(0.815 0.114 78);
+  /* Minimalist Light — slate canvas, indigo accent */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --panel: #ffffff;
+  --brand: #4f46e5;
+  --brand-foreground: #ffffff;
+  --warm: #f59e0b;
 
-  --card: oklch(0.22 0.012 250);
-  --card-foreground: oklch(0.98 0.002 250);
-  --popover: oklch(0.2 0.012 250);
-  --popover-foreground: oklch(0.98 0.002 250);
-  --primary: oklch(0.797 0.147 163.2);
-  --primary-foreground: oklch(0.17 0.02 165);
-  --secondary: oklch(0.26 0.012 250);
-  --secondary-foreground: oklch(0.98 0.002 250);
-  --muted: oklch(0.26 0.012 250);
-  --muted-foreground: oklch(0.68 0.01 250);
-  --accent: oklch(0.28 0.013 250);
-  --accent-foreground: oklch(0.98 0.002 250);
-  --destructive: oklch(0.63 0.2 25);
-  --destructive-foreground: oklch(0.98 0.002 250);
-  --success: oklch(0.72 0.17 145);
-  --warning: oklch(0.78 0.13 85);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.797 0.147 163.2 / 45%);
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eef2ff;
+  --accent-foreground: #3730a3;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --success: #059669;
+  --warning: #d97706;
+  --border: rgb(15 23 42 / 0.08);
+  --input: rgb(15 23 42 / 0.12);
+  --ring: rgb(79 70 229 / 0.35);
 }
 
 .dark {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @layer base {
@@ -103,7 +104,7 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
@@ -160,27 +161,27 @@
   font-size: 0.875rem;
 }
 
-/* ---------- Chronodeck cockpit layer: glass, gradients, motion ---------- */
+/* ---------- Chronodeck cockpit layer: surfaces, gradients, motion ---------- */
 :root {
   /* surfaces — exactly two elevation levels */
-  --bg-base: #14161c;
-  --bg-elevated: #1b1e26;
-  --border-subtle: rgb(255 255 255 / 0.06);
+  --bg-base: #ffffff;
+  --bg-elevated: #f8fafc;
+  --border-subtle: rgb(15 23 42 / 0.06);
   --blur-glass: 20px;
 
-  /* accent */
-  --accent-start: #34d399;
-  --accent-end: #22d3ee;
-  --accent-ai: #a78bfa;
+  /* accent — indigo → blue, primary CTA / active nav / fills / chart line */
+  --accent-start: #4f46e5;
+  --accent-end: #2563eb;
+  --accent-ai: #7c3aed;
 
   /* semantic states */
-  --state-hit: #34d399;
-  --state-partial: #fbbf24;
-  --state-missed: #fb7185;
+  --state-hit: #059669;
+  --state-partial: #d97706;
+  --state-missed: #e11d48;
 
   /* text */
-  --text-primary: #f5f5f7;
-  --text-muted: #9ca3af;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
 
   /* spacing scale */
   --space-1: 4px;
@@ -190,9 +191,10 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* elevation */
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
-  --shadow-glow: 0 0 28px 2px rgb(52 211 153 / 0.28);
+  /* elevation — soft shadows instead of harsh borders */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 8px 24px -16px rgb(15 23 42 / 0.18);
+  --shadow-hover: 0 2px 6px rgb(15 23 42 / 0.07), 0 16px 32px -18px rgb(15 23 42 / 0.24);
+  --shadow-glow: 0 0 0 6px rgb(79 70 229 / 0.14);
 
   /* motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -201,29 +203,28 @@
   --dur-base: 0.4s;
   --dur-slow: 0.8s;
 
-  /* map core surfaces onto the new palette */
-  --background: #0b0d12;
-  --foreground: #f4f6fa;
-  --panel: #14161c;
-  --card: #14161c;
-  --popover: #1b1e26;
-  --muted-foreground: #9aa3b2;
-  --border: rgb(255 255 255 / 0.07);
+  /* map core surfaces onto the light palette */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --muted-foreground: #64748b;
+  --border: rgb(15 23 42 / 0.07);
 }
 
-/* Ambient app backdrop: fine grid + one soft emerald wash at the top.
-   No floating blobs, no purple haze. */
+/* Ambient app backdrop: fine slate grid + one soft indigo wash at the top. */
 @utility app-backdrop {
   position: relative;
-  background-color: var(--bg-base);
+  background-color: var(--background);
   background-image:
     radial-gradient(
       120% 60% at 50% -10%,
-      color-mix(in oklab, var(--accent-start) 10%, transparent),
+      color-mix(in oklab, var(--accent-start) 8%, transparent),
       transparent 70%
     ),
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgb(15 23 42 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.035) 1px, transparent 1px);
   background-size:
     100% 100%,
     48px 48px,
@@ -263,9 +264,18 @@
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
   border-radius: var(--radius-card) !important;
+  transition: box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 
 /* Level 2 surface — raised elements inside a card (chips wells, sheets). */
+@utility lift {
+  transition: box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  &:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+}
+
 @utility card-raised {
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
@@ -290,7 +300,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgb(255 255 255 / 0.07),
+      rgb(15 23 42 / 0.06),
       transparent
     );
     animation: cd-shimmer 1.6s var(--ease-in-out) infinite;

@@ -186,7 +186,7 @@ function AddTargetSheet({
   const title = subjectId ? subjects.find((s) => s.id === subjectId)?.name : custom;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-end bg-foreground/25 backdrop-blur-sm">
       <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl border-t border-border bg-panel p-5">
         <h3 className="text-base font-semibold tracking-tight">New target</h3>
         <div className="mt-4 space-y-3">
