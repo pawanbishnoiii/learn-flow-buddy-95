@@ -112,6 +112,8 @@ function TodayPage() {
   const history = useMemo(() => weeklyHistory(all, weeklyGoal), [all, weeklyGoal]);
   const monthly = useMemo(() => monthlyHistory(all, weeklyGoal), [all, weeklyGoal]);
   const perDay = useMemo(() => dailyMinutes(all), [all]);
+  const ctaRef = useIdleGlow<HTMLButtonElement>();
+
 
   const todayIdx = new Date().getDay();
   const tomorrowIdx = (todayIdx + 1) % 7;
@@ -731,7 +733,33 @@ function TodayPage() {
           </button>
         </Sheet>
       ) : null}
+
+      {/* Edit subject target sheet */}
+      {editSubject ? (
+        <Sheet title={`Edit ${editSubject.name} target`} onClose={() => setEditSubject(null)}>
+          <label className="block text-xs text-muted-foreground">Weekly target (hours)</label>
+          <input
+            type="number"
+            min={0}
+            step={0.5}
+            value={editSubject.hours}
+            onChange={(e) => setEditSubject({ ...editSubject, hours: e.target.value })}
+            className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
+          />
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            This becomes the subject's weekly goal. Daily and monthly targets scale from it automatically.
+          </p>
+          <button
+            onClick={() => saveSubjectTarget.mutate({ id: editSubject.id, hours: Number(editSubject.hours) || 0 })}
+            disabled={saveSubjectTarget.isPending}
+            className="mt-5 h-12 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-60"
+          >
+            {saveSubjectTarget.isPending ? "Saving…" : "Save target"}
+          </button>
+        </Sheet>
+      ) : null}
     </>
+
   );
 }
 
