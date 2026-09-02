@@ -800,7 +800,7 @@ function Ring({ label, done, goal }: { label: string; done: number; goal: number
         </div>
       </div>
       <p className="mt-3 text-center text-[10px] tracking-widest text-muted-foreground uppercase">
-        {label} · {done.toFixed(1)}/{goal}h
+        {label} · {fmtHM(done)}/{fmtHM(goal * 60)}
       </p>
     </div>
   );
