@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -16,8 +15,8 @@ import {
   YAxis,
 } from "recharts";
 import { FocusMode } from "@/components/FocusMode";
+import { CountUp, Reveal, StaggerGrid, useIdleGlow } from "@/components/motion/gsap-bits";
 import { Icon3D } from "@/components/Icon3D";
-import { getDailyInsight } from "@/lib/ai.functions";
 import {
   DAYS,
   dailyMinutes,
@@ -32,13 +31,14 @@ import {
   fetchSettings,
   fetchSubjects,
   fetchTargets,
+  fmtHM,
   hourlyHeat,
   localTimeToIsoToday,
   minutesInRange,
   monthlyHistory,
-  isAdmin,
   reorderBlocks,
   subjectProgress,
+  updateSubject,
   startBreak,
   startOfToday,
   startOfWeek,
@@ -75,6 +75,8 @@ function TodayPage() {
   const [startOpen, setStartOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [scope, setScope] = useState<"day" | "week" | "month">("week");
+  const [subjScope, setSubjScope] = useState<"1D" | "1W" | "1M">("1D");
+  const [editSubject, setEditSubject] = useState<{ id: string; name: string; hours: string } | null>(null);
 
   const [form, setForm] = useState({ subject_id: "", subject_name: "", topic: "", kind: "reading" });
   const [saveForm, setSaveForm] = useState({ topic: "", notes: "" });
@@ -85,7 +87,6 @@ function TodayPage() {
   const blocks = useQuery({ queryKey: ["blocks"], queryFn: fetchBlocks });
   const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
   const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
-  const admin = useQuery({ queryKey: ["is-admin"], queryFn: isAdmin });
   const motivations = useQuery({ queryKey: ["motivations"], queryFn: fetchMotivations, staleTime: 60 * 60_000 });
   const breaks = useQuery({
     queryKey: ["breaks"],
@@ -94,15 +95,6 @@ function TodayPage() {
   const sessions = useQuery({
     queryKey: ["sessions", "8w"],
     queryFn: () => fetchSessions(EIGHT_WEEKS),
-  });
-
-  const insightFn = useServerFn(getDailyInsight);
-  const insight = useQuery({
-    queryKey: ["insight"],
-    queryFn: () => insightFn({}),
-    staleTime: 15 * 60_000,
-    retry: false,
-    enabled: admin.data === true,
   });
 
   const all = sessions.data ?? [];
@@ -141,10 +133,27 @@ function TodayPage() {
   }, [motivations.data]);
 
   const hours = useMemo(() => hourlyHeat(all), [all]);
+  const subjWindow = useMemo(() => {
+    if (subjScope === "1D") return { since: startOfToday(), scale: 1 / 7, label: "today" };
+    if (subjScope === "1W") return { since: startOfWeek(), scale: 1, label: "this week" };
+    return { since: monthStart, scale: 4.345, label: "this month" };
+  }, [subjScope, monthStart]);
+
   const progress = useMemo(
-    () => subjectProgress(all, subjects.data ?? []),
-    [all, subjects.data],
+    () => subjectProgress(all, subjects.data ?? [], subjWindow.since, subjWindow.scale),
+    [all, subjects.data, subjWindow],
   );
+
+  const saveSubjectTarget = useMutation({
+    mutationFn: async (v: { id: string; hours: number }) =>
+      updateSubject(v.id, { weekly_target_hours: v.hours }),
+    onSuccess: async () => {
+      setEditSubject(null);
+      await qc.invalidateQueries({ queryKey: ["subjects"] });
+      toast.success("Target updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const reorder = useMutation({
     mutationFn: (ids: string[]) => reorderBlocks(ids),
@@ -241,33 +250,33 @@ function TodayPage() {
       <div className="space-y-8 px-5 py-6">
         {/* Hero */}
         <section className="glass-panel relative overflow-hidden rounded-3xl p-6">
-          <div className="pointer-events-none absolute -top-16 -right-10 size-52 rounded-full bg-brand/15 blur-3xl" />
+          <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-[var(--accent-start)]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-16 size-56 rounded-full bg-[var(--accent-end)]/12 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-brand uppercase">Start study</p>
               <h1 className="mt-2 text-2xl leading-tight font-semibold tracking-tight">
-                {todayMin > 0
-                  ? `${(todayMin / 60).toFixed(1)}h done today`
-                  : "Aaj ka pehla session shuru karo"}
+                {todayMin > 0 ? `${fmtHM(todayMin)} done today` : "Aaj ka pehla session shuru karo"}
               </h1>
               <p className="mt-1 text-xs text-muted-foreground">
-                Daily target {dailyGoal}h · {Math.min(100, Math.round((todayMin / 60 / dailyGoal) * 100))}%
-                complete
+                Daily target {fmtHM(dailyGoal * 60)} ·{" "}
+                {Math.min(100, Math.round((todayMin / 60 / dailyGoal) * 100))}% complete
               </p>
             </div>
-            <Icon3D name="clock" size={64} priority />
+            <Icon3D name="clock" size={64} priority className="float-soft" />
           </div>
 
-          <div className="relative mt-5 h-2 overflow-hidden rounded-full bg-background">
+          <div className="relative mt-5 h-2.5 overflow-hidden rounded-full bg-background">
             <div
-              className="gradient-ring h-full rounded-full transition-all duration-700"
+              className="gradient-bar h-full rounded-full transition-[width] duration-1000 ease-out"
               style={{ width: `${Math.min(100, (todayMin / 60 / dailyGoal) * 100)}%` }}
             />
           </div>
 
           <button
+            ref={ctaRef}
             onClick={() => navigate({ to: "/study" })}
-            className="gradient-ring breathe relative mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-brand-foreground transition-transform active:scale-[0.98]"
+            className="gradient-bar relative mt-5 h-14 w-full rounded-2xl text-sm font-semibold text-[#04140d] transition-transform active:scale-[0.98]"
           >
             {running.data ? "Back to running session" : "Start study"}
           </button>
@@ -276,20 +285,27 @@ function TodayPage() {
         {/* Stats */}
         <section className="grid grid-cols-3 gap-3">
           {[
-            { label: "Today", value: `${(todayMin / 60).toFixed(1)}h`, icon: "books" as const },
-            { label: "This week", value: `${(weekMin / 60).toFixed(1)}h`, icon: "target" as const },
-            { label: "This month", value: `${(monthMin / 60).toFixed(1)}h`, icon: "trophy" as const },
+            { label: "Today", minutes: todayMin, icon: "books" as const },
+            { label: "This week", minutes: weekMin, icon: "target" as const },
+            { label: "This month", minutes: monthMin, icon: "trophy" as const },
           ].map((s) => (
             <div key={s.label} className="glass-panel rounded-2xl p-4">
-              <Icon3D name={s.icon} size={28} />
-              <p className="num mt-3 text-lg leading-none font-semibold">{s.value}</p>
+              <span className="grid size-9 place-items-center rounded-xl bg-[linear-gradient(135deg,color-mix(in_oklab,var(--accent-start)_22%,transparent),color-mix(in_oklab,var(--accent-end)_16%,transparent))]">
+                <Icon3D name={s.icon} size={22} />
+              </span>
+              <p className="num mt-3 text-lg leading-none font-semibold">
+                <CountUp value={Math.floor(s.minutes / 60)} decimals={0} suffix="h" />
+                <span className="ml-1 text-xs text-muted-foreground">
+                  {String(Math.round(s.minutes % 60)).padStart(2, "0")}m
+                </span>
+              </p>
               <p className="mt-1 text-[10px] tracking-wide text-muted-foreground uppercase">{s.label}</p>
             </div>
           ))}
         </section>
 
         {/* Analytics calendar */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <Reveal className="glass-panel rounded-3xl p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Icon3D name="calendar" size={32} />
@@ -300,8 +316,8 @@ function TodayPage() {
                 <button
                   key={s}
                   onClick={() => setScope(s)}
-                  className={`rounded-lg px-3 py-1 font-mono text-[10px] uppercase transition-colors ${
-                    scope === s ? "bg-brand text-brand-foreground" : "text-muted-foreground"
+                  className={`rounded-lg px-3 py-1 font-mono text-[10px] uppercase transition-all duration-300 ${
+                    scope === s ? "gradient-bar text-[#04140d]" : "text-muted-foreground"
                   }`}
                 >
                   {s}
@@ -310,13 +326,8 @@ function TodayPage() {
             </div>
           </div>
 
-          <p className="mt-4 font-mono text-3xl font-semibold">
-            {scope === "day"
-              ? (todayMin / 60).toFixed(1)
-              : scope === "week"
-                ? (weekMin / 60).toFixed(1)
-                : (monthMin / 60).toFixed(1)}
-            <span className="ml-1 text-sm text-muted-foreground">h</span>
+          <p className="num mt-4 text-3xl font-semibold">
+            {fmtHM(scope === "day" ? todayMin : scope === "week" ? weekMin : monthMin)}
           </p>
 
           <div className="mt-5 h-44">
@@ -326,16 +337,18 @@ function TodayPage() {
           </div>
 
           <MonthGrid perDay={perDay} dailyGoal={dailyGoal} />
-        </section>
+        </Reveal>
 
         {/* Hourly heatmap */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <Reveal className="glass-panel rounded-3xl p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="clock" size={32} />
             <h2 className="text-sm font-semibold">Hour by hour</h2>
             <span className="ml-auto font-mono text-[10px] text-muted-foreground uppercase">today</span>
           </div>
-          <HourGrid hours={hours} />
+          <StaggerGrid selector=".hour-cell">
+            <HourGrid hours={hours} />
+          </StaggerGrid>
           <div className="mt-3 flex items-center gap-4 font-mono text-[9px] text-muted-foreground uppercase">
             <span className="flex items-center gap-1.5">
               <span className="size-2.5 rounded-sm bg-brand" /> studied
@@ -344,17 +357,30 @@ function TodayPage() {
               <span className="size-2.5 rounded-sm bg-destructive/70" /> missed
             </span>
           </div>
-        </section>
+        </Reveal>
 
         {/* Subject progress */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <Reveal className="glass-panel rounded-3xl p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="books" size={32} />
             <h2 className="text-sm font-semibold">Subject progress</h2>
-            <Link to="/targets" className="ml-auto font-mono text-[10px] text-brand uppercase">
-              subjects
-            </Link>
+            <div className="ml-auto flex gap-1 rounded-xl bg-background p-1">
+              {(["1D", "1W", "1M"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setSubjScope(k)}
+                  className={`rounded-lg px-2.5 py-1 font-mono text-[10px] transition-all duration-300 ${
+                    subjScope === k ? "gradient-bar text-[#04140d]" : "text-muted-foreground"
+                  }`}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
           </div>
+          <p className="mt-2 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
+            target {subjWindow.label}
+          </p>
           {progress.length ? (
             <ul className="mt-4 space-y-3">
               {progress.map((p) => (
@@ -362,20 +388,38 @@ function TodayPage() {
                   <div className="flex items-center justify-between gap-3 text-xs">
                     <span className="min-w-0 truncate font-medium">{p.name}</span>
                     <span className="shrink-0 font-mono text-muted-foreground">
-                      {p.sessions} sess · {(p.minutes / 60).toFixed(1)}h
+                      {p.sessions} sess · {fmtHM(p.minutes)}
                     </span>
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background">
                     <div
-                      className="gradient-ring h-full rounded-full transition-all duration-700"
+                      className="gradient-bar h-full rounded-full transition-[width] duration-1000 ease-out"
                       style={{ width: `${p.pct}%` }}
                     />
                   </div>
-                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                    {p.targetHours > 0
-                      ? `${p.pct}% of ${p.targetHours}h · ${p.remainingHours.toFixed(1)}h left`
-                      : "no weekly target set"}
-                  </p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="font-mono text-[10px] text-muted-foreground">
+                      {p.targetHours > 0
+                        ? `${p.pct}% of ${fmtHM(p.targetHours * 60)} · ${fmtHM(p.remainingHours * 60)} left`
+                        : "no target set"}
+                    </p>
+                    {p.id ? (
+                      <button
+                        onClick={() =>
+                          setEditSubject({
+                            id: p.id!,
+                            name: p.name,
+                            hours: String(
+                              (subjects.data ?? []).find((x) => x.id === p.id)?.weekly_target_hours ?? 0,
+                            ),
+                          })
+                        }
+                        className="font-mono text-[10px] text-brand uppercase"
+                      >
+                        edit
+                      </button>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -384,7 +428,8 @@ function TodayPage() {
               Add subjects and finish a session to see per-subject progress.
             </p>
           )}
-        </section>
+        </Reveal>
+
 
         {/* Day planner with drag & drop */}
         <DayPlanner
@@ -560,21 +605,8 @@ function TodayPage() {
           </p>
         </section>
 
-        {/* AI insight — admin only */}
-        {admin.data ? (
-          <section className="rounded-3xl border border-brand/25 bg-brand/5 p-5">
-            <div className="flex items-center gap-3">
-              <Icon3D name="brain" size={32} />
-              <h2 className="text-sm font-semibold">AI coach</h2>
-              <Link to="/assistant" className="ml-auto font-mono text-[10px] text-brand uppercase">
-                chat
-              </Link>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed">
-              {insight.isLoading ? "Reading your study data…" : (insight.data?.insight ?? "AI is warming up.")}
-            </p>
-          </section>
-        ) : null}
+
+
 
         {/* Motivation + magazine */}
         <section className="grid gap-3">

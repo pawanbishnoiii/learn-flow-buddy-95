@@ -90,6 +90,16 @@ export function fmtHours(minutes: number) {
   return (minutes / 60).toFixed(1);
 }
 
+/** Always human hour:minute — e.g. 2h 05m, 45m. Never a decimal hour. */
+export function fmtHM(minutes: number) {
+  const total = Math.max(0, Math.round(minutes));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
+
+
 async function uid() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) throw new Error("Not signed in");
@@ -186,6 +196,49 @@ export async function discardSession(id: string) {
   if (error) throw error;
 }
 
+/** Manually log a finished reading / class session with explicit start + exit time. */
+export async function createManualSession(input: {
+  subject_id: string | null;
+  subject_name: string | null;
+  topic: string | null;
+  notes: string | null;
+  kind: string;
+  started_at: string;
+  ended_at: string;
+}) {
+  const user_id = await uid();
+  const minutes = Math.max(
+    1,
+    Math.round((new Date(input.ended_at).getTime() - new Date(input.started_at).getTime()) / 60000),
+  );
+  const { error } = await supabase.from("study_sessions").insert({
+    ...input,
+    user_id,
+    is_running: false,
+    duration_minutes: minutes,
+  } as any);
+  if (error) throw error;
+}
+
+/** Manually log a finished break with explicit start + exit time. */
+export async function createManualBreak(input: {
+  kind: string;
+  note: string | null;
+  started_at: string;
+  ended_at: string;
+}) {
+  const user_id = await uid();
+  const minutes = Math.max(
+    1,
+    Math.round((new Date(input.ended_at).getTime() - new Date(input.started_at).getTime()) / 60000),
+  );
+  const { error } = await supabase
+    .from("session_breaks")
+    .insert({ ...input, user_id, session_id: null, duration_minutes: minutes } as any);
+  if (error) throw error;
+}
+
+
 export async function fetchBlocks(): Promise<Block[]> {
   const { data, error } = await supabase
     .from("timetable_blocks")
@@ -235,6 +288,14 @@ export async function createTarget(input: {
 }) {
   const user_id = await uid();
   const { error } = await supabase.from("targets").insert({ ...input, user_id });
+  if (error) throw error;
+}
+
+export async function updateTarget(
+  id: string,
+  patch: Partial<Pick<Target, "title" | "daily_hours" | "weekly_hours" | "deadline" | "subject_id">>,
+) {
+  const { error } = await supabase.from("targets").update(patch).eq("id", id);
   if (error) throw error;
 }
 
@@ -569,6 +630,8 @@ export function subjectProgress(
   sessions: Session[],
   subjects: Subject[],
   since = startOfWeek(),
+  /** weekly target is scaled to the selected scope: 1/7 for a day, 1 for a week, ~4.345 for a month */
+  targetScale = 1,
 ): SubjectProgress[] {
   const map = new Map<string, SubjectProgress>();
   for (const s of subjects) {
@@ -578,9 +641,9 @@ export function subjectProgress(
       color: s.color,
       sessions: 0,
       minutes: 0,
-      targetHours: s.weekly_target_hours ?? 0,
+      targetHours: +(((s.weekly_target_hours ?? 0) * targetScale).toFixed(2)),
       pct: 0,
-      remainingHours: s.weekly_target_hours ?? 0,
+      remainingHours: +(((s.weekly_target_hours ?? 0) * targetScale).toFixed(2)),
     });
   }
   for (const s of sessions) {
@@ -665,6 +728,7 @@ export type AppSettings = {
   support_email: string | null;
   banner_text: string | null;
   ai_enabled: boolean;
+  manual_log_enabled: boolean;
   landing_enabled: boolean;
   maintenance_note: string | null;
 };
@@ -672,7 +736,7 @@ export type AppSettings = {
 export async function fetchAppSettings(): Promise<AppSettings | null> {
   const { data, error } = await supabase
     .from("app_settings")
-    .select("site_name,tagline,support_email,banner_text,ai_enabled,landing_enabled,maintenance_note")
+    .select("site_name,tagline,support_email,banner_text,ai_enabled,manual_log_enabled,landing_enabled,maintenance_note")
     .maybeSingle();
   if (error) throw error;
   return (data as AppSettings) ?? null;

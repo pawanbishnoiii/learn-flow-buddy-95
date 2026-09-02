@@ -46,6 +46,7 @@ export type Database = {
           id: boolean
           landing_enabled: boolean
           maintenance_note: string | null
+          manual_log_enabled: boolean
           site_name: string
           support_email: string | null
           tagline: string
@@ -58,6 +59,7 @@ export type Database = {
           id?: boolean
           landing_enabled?: boolean
           maintenance_note?: string | null
+          manual_log_enabled?: boolean
           site_name?: string
           support_email?: string | null
           tagline?: string
@@ -70,6 +72,7 @@ export type Database = {
           id?: boolean
           landing_enabled?: boolean
           maintenance_note?: string | null
+          manual_log_enabled?: boolean
           site_name?: string
           support_email?: string | null
           tagline?: string
