@@ -124,6 +124,7 @@ export function AuthScreen() {
 
   return (
     <div className="grid-lines relative flex min-h-[100svh] flex-col overflow-hidden bg-background px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+      <GoogleOneTap />
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -top-32 left-1/2 size-[520px] -translate-x-1/2 rounded-full bg-brand/10 blur-[130px]"
