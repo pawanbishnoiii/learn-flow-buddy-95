@@ -490,8 +490,9 @@ function StudyModePage() {
               </motion.div>
             ) : null}
           </AnimatePresence>
-        </>
+        </motion.div>
       )}
+      </AnimatePresence>
     </motion.div>
   );
 }
