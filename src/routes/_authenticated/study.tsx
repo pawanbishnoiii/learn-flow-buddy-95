@@ -235,8 +235,14 @@ function StudyModePage() {
         if (st !== null && Math.abs(y - st) > 30) reveal();
       }}
     >
+      <AnimatePresence mode="wait" initial={false}>
       {!s ? (
-        <div
+        <motion.div
+          key="setup"
+          initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          exit={{ opacity: 0, y: -14, filter: "blur(6px)" }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           className="my-auto w-full max-w-sm px-5 py-8"
           onClick={(e) => e.stopPropagation()}
         >
@@ -316,10 +322,16 @@ function StudyModePage() {
               Back to home
             </button>
           </div>
-        </div>
+        </motion.div>
       ) : (
-
-        <>
+        <motion.div
+          key="running"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.02 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex w-full flex-col items-center"
+        >
           <p className="font-mono text-[10px] tracking-[0.4em] text-white/35 uppercase">
             {openBreak.data
               ? `on ${BREAK_KINDS.find((b) => b.k === openBreak.data?.kind)?.l ?? "break"}`
@@ -329,9 +341,17 @@ function StudyModePage() {
           <motion.div
             animate={{ opacity: openBreak.data ? 0.4 : 1 }}
             transition={{ duration: 0.4 }}
-            className="mt-6 w-full px-3"
+            className="relative mt-6 w-full px-3"
           >
-            <FlipClock seconds={elapsed} />
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-6 -inset-y-10 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--accent-start)_26%,transparent),transparent)] blur-2xl"
+              animate={{ opacity: openBreak.data ? 0.15 : [0.35, 0.6, 0.35], scale: [1, 1.04, 1] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <div className="relative">
+              <FlipClock seconds={elapsed} />
+            </div>
           </motion.div>
 
           {s.planned_end_at ? (
