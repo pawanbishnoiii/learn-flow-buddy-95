@@ -161,8 +161,8 @@ function AdminPage() {
 
   const stats = [
     { l: "Sessions", v: String(all.filter((s) => !s.is_running).length) },
-    { l: "Today", v: `${(minutesInRange(all, startOfToday()) / 60).toFixed(1)}h` },
-    { l: "Week", v: `${(minutesInRange(all, startOfWeek()) / 60).toFixed(1)}h` },
+    { l: "Today", v: fmtHM(minutesInRange(all, startOfToday())) },
+    { l: "Week", v: fmtHM(minutesInRange(all, startOfWeek())) },
     { l: "Subjects", v: String(subjects.data?.length ?? 0) },
     { l: "Blocks", v: String(blocks.data?.length ?? 0) },
     { l: "Targets", v: String(targets.data?.length ?? 0) },
