@@ -80,6 +80,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_settings: {
+        Row: {
+          from_email: string | null
+          from_name: string | null
+          id: boolean
+          provider: string
+          smtp_host: string | null
+          smtp_password: string | null
+          smtp_port: number | null
+          smtp_user: string | null
+          updated_at: string
+        }
+        Insert: {
+          from_email?: string | null
+          from_name?: string | null
+          id?: boolean
+          provider?: string
+          smtp_host?: string | null
+          smtp_password?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          updated_at?: string
+        }
+        Update: {
+          from_email?: string | null
+          from_name?: string | null
+          id?: boolean
+          provider?: string
+          smtp_host?: string | null
+          smtp_password?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       motivations: {
         Row: {
           author: string | null
