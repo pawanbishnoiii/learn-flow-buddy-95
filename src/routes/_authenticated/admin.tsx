@@ -4,6 +4,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Icon3D } from "@/components/Icon3D";
 import {
+  EMPTY_EMAIL_SETTINGS,
+  fetchEmailSettings,
+  updateEmailSettings,
+  type EmailSettings,
+} from "@/lib/email";
+import {
   DAYS,
   createSubject,
   deleteBlock,
@@ -194,6 +200,8 @@ function AdminPage() {
         </section>
 
         <SiteSettings />
+        <EmailDelivery />
+
 
 
 
@@ -571,5 +579,145 @@ function Toggle({ label, on, onChange }: { label: string; on: boolean; onChange:
         />
       </span>
     </button>
+  );
+}
+
+/* ---------------- email delivery (admin only) ---------------- */
+
+function EmailDelivery() {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["email-settings"], queryFn: fetchEmailSettings });
+  const [draft, setDraft] = useState<EmailSettings | null>(null);
+  const value = draft ?? q.data ?? null;
+
+  const save = useMutation({
+    mutationFn: async (patch: EmailSettings) => updateEmailSettings(patch),
+    onSuccess: async () => {
+      setDraft(null);
+      await qc.invalidateQueries({ queryKey: ["email-settings"] });
+      toast.success("Email settings saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (q.isLoading) {
+    return (
+      <section className="glass-panel p-4 sm:p-5">
+        <h2 className="text-sm font-semibold">Email delivery</h2>
+        <p className="mt-2 text-xs text-muted-foreground">Loading…</p>
+      </section>
+    );
+  }
+
+  const v = value ?? EMPTY_EMAIL_SETTINGS;
+  const set = (patch: Partial<EmailSettings>) => setDraft({ ...v, ...patch });
+  const smtp = v.provider === "smtp";
+
+  return (
+    <section className="glass-panel p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold">Email delivery</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Signup confirmation, password reset aur magic-link mails kahan se jayen.
+          </p>
+        </div>
+        <span className="ai-accent rounded-xl px-2 py-1 font-mono text-[10px] tracking-widest uppercase">
+          {smtp ? "SMTP" : "Built-in"}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {(["lovable", "smtp"] as const).map((p) => (
+          <button
+            key={p}
+            onClick={() => set({ provider: p })}
+            className={`rounded-xl border px-3 py-3 text-left text-sm transition-colors ${
+              v.provider === p ? "border-brand/60 bg-brand/10" : "border-border hover:border-brand/30"
+            }`}
+          >
+            <span className="block font-medium">{p === "lovable" ? "Built-in sender" : "Custom SMTP"}</span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {p === "lovable"
+                ? "Default cloud mailer — zero setup, shared sending domain."
+                : "Apna SMTP server / domain use karo (Resend, SES, Postmark, Gmail…)."}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {smtp ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className="block text-xs text-muted-foreground">SMTP host</label>
+            <input
+              value={v.smtp_host ?? ""}
+              onChange={(e) => set({ smtp_host: e.target.value })}
+              placeholder="smtp.resend.com"
+              className="input mt-1"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground">Port</label>
+            <input
+              type="number"
+              value={v.smtp_port ?? 587}
+              onChange={(e) => set({ smtp_port: Number(e.target.value) || 587 })}
+              className="input mt-1"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground">Username</label>
+            <input
+              value={v.smtp_user ?? ""}
+              onChange={(e) => set({ smtp_user: e.target.value })}
+              className="input mt-1"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground">Password / API key</label>
+            <input
+              type="password"
+              autoComplete="off"
+              value={v.smtp_password ?? ""}
+              onChange={(e) => set({ smtp_password: e.target.value })}
+              className="input mt-1"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground">From name</label>
+            <input
+              value={v.from_name ?? ""}
+              onChange={(e) => set({ from_name: e.target.value })}
+              placeholder="Chronodeck"
+              className="input mt-1"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs text-muted-foreground">From email</label>
+            <input
+              type="email"
+              value={v.from_email ?? ""}
+              onChange={(e) => set({ from_email: e.target.value })}
+              placeholder="no-reply@yourdomain.com"
+              className="input mt-1"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+        Yeh settings sirf admins ko dikhti hain. Custom SMTP live tab hoga jab sender domain verify ho jaye —
+        tab tak built-in sender fallback rehta hai.
+      </p>
+
+      <button
+        onClick={() => save.mutate(v)}
+        disabled={!draft || save.isPending}
+        className="mt-4 h-11 w-full rounded-xl bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-sm font-semibold text-brand-foreground transition-opacity disabled:opacity-50 sm:w-48"
+      >
+        {save.isPending ? "Saving…" : "Save email settings"}
+      </button>
+    </section>
   );
 }

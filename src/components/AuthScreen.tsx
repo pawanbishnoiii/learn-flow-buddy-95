@@ -30,10 +30,11 @@ function GoogleMark() {
 
 export function AuthScreen() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+
   const routed = useRef(false);
 
   useEffect(() => {
@@ -93,7 +94,14 @@ export function AuthScreen() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Reset link bhej diya — apna inbox check karo.");
+        setMode("signin");
+      } else if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -111,6 +119,7 @@ export function AuthScreen() {
       setBusy(false);
     }
   }
+
 
   return (
     <div className="grid-lines relative flex min-h-[100svh] flex-col overflow-hidden bg-background px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
@@ -152,23 +161,29 @@ export function AuthScreen() {
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto w-full max-w-sm rounded-[28px] border border-border/70 bg-panel/60 p-6 shadow-[0_30px_80px_-40px_var(--brand)] backdrop-blur-2xl"
+          className="glass-panel mx-auto w-full max-w-sm p-6"
         >
           <p className="font-mono text-[10px] tracking-[0.3em] text-brand uppercase">
-            {mode === "signin" ? "Welcome back" : "Get started"}
+            {mode === "signin" ? "Welcome back" : mode === "signup" ? "Get started" : "Password reset"}
           </p>
           <h1 className="mt-2 text-[28px] leading-[1.1] font-semibold tracking-tight">
-            {mode === "signin" ? "Sign in to your deck" : "Create your deck"}
+            {mode === "signin"
+              ? "Sign in to your deck"
+              : mode === "signup"
+                ? "Create your deck"
+                : "Reset your password"}
           </h1>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Timer, timetable, targets and your AI study manager — all behind one tap.
+            {mode === "forgot"
+              ? "Email daalo — hum reset link bhej denge."
+              : "Timer, timetable, targets and your AI study manager — all behind one tap."}
           </p>
 
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={google}
             disabled={busy}
-            className="mt-6 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-brand text-sm font-semibold text-brand-foreground transition-opacity disabled:opacity-60"
+            className="mt-6 flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-sm font-semibold text-brand-foreground transition-opacity disabled:opacity-60"
           >
             <GoogleMark />
             {busy ? "Please wait…" : "Continue with Google"}
@@ -186,41 +201,56 @@ export function AuthScreen() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@email.com"
-              className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 text-sm outline-none transition-colors focus:border-brand/60"
+              className="h-12 w-full rounded-xl border border-border bg-background/70 px-4 text-sm outline-none transition-colors focus:border-brand/60"
             />
-            <input
-              type="password"
-              required
-              minLength={6}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="password"
-              className="h-12 w-full rounded-2xl border border-border bg-background/70 px-4 text-sm outline-none transition-colors focus:border-brand/60"
-            />
+            {mode !== "forgot" ? (
+              <input
+                type="password"
+                required
+                minLength={6}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="password"
+                className="h-12 w-full rounded-xl border border-border bg-background/70 px-4 text-sm outline-none transition-colors focus:border-brand/60"
+              />
+            ) : null}
             <motion.button
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={busy}
-              className="h-12 w-full rounded-2xl border border-border text-sm font-medium transition-colors hover:border-brand/50 disabled:opacity-60"
+              className="h-12 w-full rounded-xl border border-border text-sm font-medium transition-colors hover:border-brand/50 disabled:opacity-60"
             >
-              {mode === "signin" ? "Sign in with email" : "Sign up with email"}
+              {mode === "signin"
+                ? "Sign in with email"
+                : mode === "signup"
+                  ? "Sign up with email"
+                  : "Send reset link"}
             </motion.button>
           </form>
 
-          <AnimatePresence mode="wait">
-            <motion.button
-              key={mode}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18 }}
-              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-              className="mt-5 w-full text-center font-mono text-[11px] text-muted-foreground transition-colors hover:text-brand"
+          <div className="mt-5 flex flex-col items-center gap-2">
+            <AnimatePresence mode="wait">
+              <motion.button
+                key={mode}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18 }}
+                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                className="w-full text-center font-mono text-[11px] text-muted-foreground transition-colors hover:text-brand"
+              >
+                {mode === "signin" ? "No account? Create one" : "Already have an account? Sign in"}
+              </motion.button>
+            </AnimatePresence>
+            <button
+              type="button"
+              onClick={() => setMode(mode === "forgot" ? "signin" : "forgot")}
+              className="font-mono text-[11px] text-muted-foreground transition-colors hover:text-brand"
             >
-              {mode === "signin" ? "No account? Create one" : "Already have an account? Sign in"}
-            </motion.button>
-          </AnimatePresence>
+              {mode === "forgot" ? "Back to sign in" : "Forgot password?"}
+            </button>
+          </div>
         </motion.div>
       </main>
 
