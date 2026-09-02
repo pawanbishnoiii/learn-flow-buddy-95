@@ -560,21 +560,8 @@ function TodayPage() {
           </p>
         </section>
 
-        {/* AI insight — admin only */}
-        {admin.data ? (
-          <section className="rounded-3xl border border-brand/25 bg-brand/5 p-5">
-            <div className="flex items-center gap-3">
-              <Icon3D name="brain" size={32} />
-              <h2 className="text-sm font-semibold">AI coach</h2>
-              <Link to="/assistant" className="ml-auto font-mono text-[10px] text-brand uppercase">
-                chat
-              </Link>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed">
-              {insight.isLoading ? "Reading your study data…" : (insight.data?.insight ?? "AI is warming up.")}
-            </p>
-          </section>
-        ) : null}
+
+
 
         {/* Motivation + magazine */}
         <section className="grid gap-3">
