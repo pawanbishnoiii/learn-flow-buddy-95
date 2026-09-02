@@ -70,7 +70,7 @@ function OnboardingPage() {
 
   return (
     <div className="grid-lines min-h-screen px-5 py-10">
-      <div className="mx-auto w-full max-w-md rounded-3xl border border-border bg-panel p-6">
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-panel p-6">
         <div className="flex items-center gap-3">
           {profile.data?.avatar_url ? (
             <img

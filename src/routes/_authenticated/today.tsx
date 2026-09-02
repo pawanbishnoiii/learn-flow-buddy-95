@@ -325,7 +325,7 @@ function TodayPage() {
         </section>
 
         {/* Analytics calendar */}
-        <Reveal className="glass-panel rounded-3xl p-5">
+        <Reveal className="glass-panel rounded-2xl p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Icon3D name="calendar" size={32} />
@@ -360,7 +360,7 @@ function TodayPage() {
         </Reveal>
 
         {/* Hourly heatmap */}
-        <Reveal className="glass-panel rounded-3xl p-5">
+        <Reveal className="glass-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="clock" size={32} />
             <h2 className="text-sm font-semibold">Hour by hour</h2>
@@ -380,7 +380,7 @@ function TodayPage() {
         </Reveal>
 
         {/* Subject progress */}
-        <Reveal className="glass-panel rounded-3xl p-5">
+        <Reveal className="glass-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="books" size={32} />
             <h2 className="text-sm font-semibold">Subject progress</h2>
@@ -459,7 +459,7 @@ function TodayPage() {
         />
 
         {/* Weekly progress chart */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <h2 className="text-sm font-semibold">Weekly target progress</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Last 8 weeks vs your {weeklyGoal}h weekly goal
@@ -510,7 +510,7 @@ function TodayPage() {
         </section>
 
         {/* Targets */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="target" size={32} />
             <h2 className="text-sm font-semibold">Targets</h2>
@@ -541,7 +541,7 @@ function TodayPage() {
         </section>
 
         {/* Tomorrow plan */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="books" size={32} />
             <h2 className="text-sm font-semibold">Next day plan</h2>
@@ -560,7 +560,7 @@ function TodayPage() {
         </section>
 
         {/* Breaks */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <div className="flex items-center gap-3">
             <Icon3D name="break" size={32} />
             <h2 className="text-sm font-semibold">Break log</h2>
@@ -585,7 +585,7 @@ function TodayPage() {
         </section>
 
         {/* Monthly progress */}
-        <section className="rounded-3xl border border-border bg-panel p-5">
+        <section className="rounded-2xl border border-border bg-panel p-5">
           <h2 className="text-sm font-semibold">Monthly progress</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Last 6 months of real sessions vs your pro-rated goal
@@ -637,7 +637,7 @@ function TodayPage() {
         {/* Motivation + magazine */}
         <section className="grid gap-3">
           {quote ? (
-            <div className="rounded-3xl border border-border bg-panel p-5">
+            <div className="rounded-2xl border border-border bg-panel p-5">
               <div className="flex items-center gap-3">
                 <Icon3D name="trophy" size={32} />
                 <h2 className="text-sm font-semibold">{quote.title}</h2>
@@ -649,7 +649,7 @@ function TodayPage() {
             </div>
           ) : null}
           {magazine ? (
-            <div className="rounded-3xl border border-warm/25 bg-warm/5 p-5">
+            <div className="rounded-2xl border border-warm/25 bg-warm/5 p-5">
               <div className="flex items-center gap-3">
                 <Icon3D name="magazine" size={32} />
                 <h2 className="text-sm font-semibold">{magazine.title}</h2>
@@ -1061,7 +1061,7 @@ function DayPlanner({
   }
 
   return (
-    <section className="rounded-3xl border border-border bg-panel p-5">
+    <section className="rounded-2xl border border-border bg-panel p-5">
       <div className="flex items-center gap-3">
         <Icon3D name="calendar" size={32} />
         <h2 className="text-sm font-semibold">Day calendar</h2>
