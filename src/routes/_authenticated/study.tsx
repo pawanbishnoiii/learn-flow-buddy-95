@@ -157,6 +157,7 @@ function StudyModePage() {
   const pause = useMutation({
     mutationFn: (kind: string) => startBreak(running.data?.id ?? null, kind),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["open-break"] }),
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const resume = useMutation({

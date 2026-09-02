@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Icon3D } from "@/components/Icon3D";
 import {
   fetchSessions,
+  fmtHM,
   isAdmin,
   minutesInRange,
   saveOnboarding,
@@ -113,8 +114,8 @@ function ProfilePage() {
 
         <section className="grid grid-cols-3 gap-3">
           {[
-            { l: "Lifetime", v: `${(total / 60).toFixed(1)}h` },
-            { l: "This week", v: `${(week / 60).toFixed(1)}h` },
+            { l: "Lifetime", v: fmtHM(total) },
+            { l: "This week", v: fmtHM(week) },
             { l: "Sessions", v: String(all.filter((s) => !s.is_running).length) },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl border border-border bg-panel p-4">

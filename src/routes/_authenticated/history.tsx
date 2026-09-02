@@ -4,18 +4,25 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Icon3D } from "@/components/Icon3D";
 import {
+  createManualBreak,
+  createManualSession,
   deleteBreak,
   deleteSession,
+  fetchAppSettings,
   fetchBreaks,
   fetchSessions,
   fetchSettings,
+  fetchSubjects,
   fetchTargets,
   startOfWeek,
   updateBreak,
   updateSession,
   type Break,
   type Session,
+  type Subject,
+  fmtHM,
 } from "@/lib/study";
+
 
 export const Route = createFileRoute("/_authenticated/history")({
   ssr: false,
@@ -53,11 +60,15 @@ function HistoryPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [editSession, setEditSession] = useState<Session | null>(null);
   const [editBreak, setEditBreak] = useState<Break | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
 
   const sessions = useQuery({ queryKey: ["sessions", "all"], queryFn: () => fetchSessions() });
   const breaks = useQuery({ queryKey: ["breaks", "all"], queryFn: () => fetchBreaks() });
   const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
   const targets = useQuery({ queryKey: ["targets"], queryFn: fetchTargets });
+  const subjects = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
+  const appSettings = useQuery({ queryKey: ["app-settings"], queryFn: fetchAppSettings });
+
 
   const dailyGoalMin = (settings.data?.daily_goal_hours ?? 4) * 60;
 
@@ -136,6 +147,45 @@ function HistoryPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const manualLog = useMutation({
+    mutationFn: async (input: {
+      kind: "session" | "break";
+      subject_id: string;
+      subject_name: string;
+      topic: string;
+      notes: string;
+      break_kind: string;
+      started_at: string;
+      ended_at: string;
+    }) => {
+      if (input.kind === "break") {
+        await createManualBreak({
+          kind: input.break_kind,
+          note: input.notes.trim() || null,
+          started_at: input.started_at,
+          ended_at: input.ended_at,
+        });
+      } else {
+        const subj = (subjects.data ?? []).find((s) => s.id === input.subject_id);
+        await createManualSession({
+          subject_id: subj?.id ?? null,
+          subject_name: subj?.name ?? (input.subject_name.trim() || "Study"),
+          topic: input.topic.trim() || null,
+          notes: input.notes.trim() || null,
+          kind: input.break_kind,
+          started_at: input.started_at,
+          ended_at: input.ended_at,
+        });
+      }
+    },
+    onSuccess: async () => {
+      setManualOpen(false);
+      await invalidate();
+      toast.success("Entry logged");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const rows = useMemo(
     () =>
       (sessions.data ?? []).filter(
@@ -183,8 +233,8 @@ function HistoryPage() {
         <section className="grid grid-cols-3 gap-2 sm:gap-3">
           {[
             { l: "Sessions", v: String(rows.length) },
-            { l: "Study", v: `${(totalMinutes / 60).toFixed(1)}h` },
-            { l: "Breaks", v: `${(breakMinutes / 60).toFixed(1)}h` },
+            { l: "Study", v: fmtHM(totalMinutes) },
+            { l: "Breaks", v: fmtHM(breakMinutes) },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl border border-border bg-panel p-3 sm:p-4">
               <p className="font-mono text-lg leading-none font-semibold">{s.v}</p>
@@ -193,7 +243,7 @@ function HistoryPage() {
           ))}
         </section>
 
-        <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5">
           {(["all", "reading", "class", "break"] as const).map((k) => (
             <button
               key={k}
@@ -205,7 +255,16 @@ function HistoryPage() {
               {k}
             </button>
           ))}
+          {appSettings.data?.manual_log_enabled ? (
+            <button
+              onClick={() => setManualOpen(true)}
+              className="h-10 shrink-0 rounded-xl bg-brand px-3 text-[11px] font-semibold text-brand-foreground"
+            >
+              + Log
+            </button>
+          ) : null}
         </div>
+
 
         {sessions.isLoading ? (
           <p className="text-sm text-muted-foreground">Loading history…</p>
@@ -223,7 +282,7 @@ function HistoryPage() {
                 <div className="flex items-baseline justify-between">
                   <h2 className="text-sm font-semibold">{day}</h2>
                   <span className="font-mono text-[11px] text-muted-foreground">
-                    {(items.sessions.reduce((a, s) => a + (s.duration_minutes ?? 0), 0) / 60).toFixed(1)}h
+                    {fmtHM(items.sessions.reduce((a, s) => a + (s.duration_minutes ?? 0), 0))}
                   </span>
                 </div>
 
@@ -433,6 +492,15 @@ function HistoryPage() {
           </button>
         </Sheet>
       ) : null}
+
+      {manualOpen ? (
+        <ManualEntrySheet
+          subjects={subjects.data ?? []}
+          onClose={() => setManualOpen(false)}
+          onSubmit={(v) => manualLog.mutate(v)}
+          pending={manualLog.isPending}
+        />
+      ) : null}
     </>
   );
 }
@@ -445,6 +513,181 @@ function Detail({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function ManualEntrySheet({
+  subjects,
+  onClose,
+  onSubmit,
+  pending,
+}: {
+  subjects: Subject[];
+  onClose: () => void;
+  onSubmit: (v: {
+    kind: "session" | "break";
+    subject_id: string;
+    subject_name: string;
+    topic: string;
+    notes: string;
+    break_kind: string;
+    started_at: string;
+    ended_at: string;
+  }) => void;
+  pending: boolean;
+}) {
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 3600_000);
+  const toLocal = (d: Date) => {
+    const off = d.getTimezoneOffset();
+    return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
+  };
+  const [kind, setKind] = useState<"session" | "break">("session");
+  const [sessionKind, setSessionKind] = useState("reading");
+  const [breakKind, setBreakKind] = useState("pause");
+  const [subjectId, setSubjectId] = useState("");
+  const [subjectName, setSubjectName] = useState("");
+  const [topic, setTopic] = useState("");
+  const [notes, setNotes] = useState("");
+  const [start, setStart] = useState(toLocal(oneHourAgo));
+  const [end, setEnd] = useState(toLocal(now));
+
+  const fromIso = (v: string) => new Date(v).toISOString();
+
+  return (
+    <Sheet title="Log entry manually" onClose={onClose}>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <button
+          onClick={() => setKind("session")}
+          className={`h-11 rounded-xl border text-sm ${
+            kind === "session" ? "border-brand bg-brand/10 text-brand" : "border-border"
+          }`}
+        >
+          Study session
+        </button>
+        <button
+          onClick={() => setKind("break")}
+          className={`h-11 rounded-xl border text-sm ${
+            kind === "break" ? "border-brand bg-brand/10 text-brand" : "border-border"
+          }`}
+        >
+          Break
+        </button>
+      </div>
+
+      {kind === "session" ? (
+        <>
+          <Field label="Category">
+            <div className="grid grid-cols-2 gap-2">
+              {["reading", "class", "revision", "practice"].map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setSessionKind(k)}
+                  className={`h-11 rounded-xl border text-xs capitalize ${
+                    sessionKind === k ? "border-brand bg-brand/10 text-brand" : "border-border"
+                  }`}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Subject">
+            <select
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+              className="input"
+            >
+              <option value="">Custom subject…</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {!subjectId ? (
+            <Field label="Subject name">
+              <input
+                value={subjectName}
+                onChange={(e) => setSubjectName(e.target.value)}
+                placeholder="e.g. Physics"
+                className="input"
+              />
+            </Field>
+          ) : null}
+          <Field label="Topic">
+            <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Chapter / topic" className="input" />
+          </Field>
+          <Field label="Notes">
+            <textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="input h-auto py-2"
+            />
+          </Field>
+        </>
+      ) : (
+        <>
+          <Field label="Break type">
+            <div className="grid grid-cols-4 gap-2">
+              {["pause", "sleep", "free", "meal"].map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setBreakKind(k)}
+                  className={`h-11 rounded-xl border text-xs capitalize ${
+                    breakKind === k ? "border-brand bg-brand/10 text-brand" : "border-border"
+                  }`}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Note">
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" className="input" />
+          </Field>
+        </>
+      )}
+
+      <Field label="Start">
+        <input
+          type="datetime-local"
+          value={start}
+          onChange={(e) => setStart(e.target.value)}
+          className="input"
+        />
+      </Field>
+      <Field label="End">
+        <input
+          type="datetime-local"
+          value={end}
+          onChange={(e) => setEnd(e.target.value)}
+          className="input"
+        />
+      </Field>
+
+      <button
+        onClick={() =>
+          onSubmit({
+            kind,
+            subject_id: subjectId,
+            subject_name: subjectName,
+            topic,
+            notes,
+            break_kind: kind === "break" ? breakKind : sessionKind,
+            started_at: fromIso(start),
+            ended_at: fromIso(end),
+          })
+        }
+        disabled={pending || new Date(end) <= new Date(start)}
+        className="mt-5 h-12 w-full rounded-2xl bg-brand text-sm font-semibold text-brand-foreground disabled:opacity-60"
+      >
+        {pending ? "Saving…" : "Log entry"}
+      </button>
+    </Sheet>
+  );
+}
+
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

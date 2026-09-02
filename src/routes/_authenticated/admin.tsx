@@ -25,6 +25,7 @@ import {
   type AppSettings,
   type Block,
   type Subject,
+  fmtHM,
 } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -160,8 +161,8 @@ function AdminPage() {
 
   const stats = [
     { l: "Sessions", v: String(all.filter((s) => !s.is_running).length) },
-    { l: "Today", v: `${(minutesInRange(all, startOfToday()) / 60).toFixed(1)}h` },
-    { l: "Week", v: `${(minutesInRange(all, startOfWeek()) / 60).toFixed(1)}h` },
+    { l: "Today", v: fmtHM(minutesInRange(all, startOfToday())) },
+    { l: "Week", v: fmtHM(minutesInRange(all, startOfWeek())) },
     { l: "Subjects", v: String(subjects.data?.length ?? 0) },
     { l: "Blocks", v: String(blocks.data?.length ?? 0) },
     { l: "Targets", v: String(targets.data?.length ?? 0) },
@@ -309,7 +310,7 @@ function AdminPage() {
                 <li key={r.name} className="flex items-center justify-between text-xs">
                   <span className="truncate">{r.name}</span>
                   <span className="ml-3 shrink-0 font-mono text-muted-foreground">
-                    {r.sessions} · {(r.minutes / 60).toFixed(1)}h
+                    {r.sessions} · {fmtHM(r.minutes)}
                   </span>
                 </li>
               ))
