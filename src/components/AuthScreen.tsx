@@ -64,6 +64,12 @@ export function AuthScreen() {
   async function google() {
     setBusy(true);
     try {
+      // Preferred path: Google One Tap card — no page redirect at all.
+      const shown = await promptGoogleOneTap();
+      if (shown) {
+        setBusy(false);
+        return;
+      }
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
