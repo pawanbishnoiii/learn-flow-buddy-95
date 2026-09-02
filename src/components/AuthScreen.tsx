@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { GoogleOneTap } from "@/components/GoogleOneTap";
 
 function GoogleMark() {
   return (
@@ -122,16 +123,18 @@ export function AuthScreen() {
 
 
   return (
+    <>
+    <GoogleOneTap />
     <div className="grid-lines relative flex min-h-[100svh] flex-col overflow-hidden bg-background px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 size-[520px] -translate-x-1/2 rounded-full bg-brand/15 blur-[130px]"
+        className="pointer-events-none absolute -top-32 left-1/2 size-[520px] -translate-x-1/2 rounded-full bg-brand/10 blur-[130px]"
         animate={{ x: [0, 30, -20, 0], y: [0, 24, -12, 0] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -bottom-40 -right-24 size-[420px] rounded-full bg-warm/10 blur-[140px]"
+        className="pointer-events-none absolute -bottom-40 -right-24 size-[420px] rounded-full bg-warm/[0.07] blur-[140px]"
         animate={{ x: [0, -24, 16, 0], y: [0, -18, 10, 0] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -201,7 +204,7 @@ export function AuthScreen() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@email.com"
-              className="h-12 w-full rounded-xl border border-border bg-background/70 px-4 text-sm outline-none transition-colors focus:border-brand/60"
+              className="h-12 w-full rounded-xl border border-border bg-secondary px-4 text-sm outline-none transition-colors focus:border-brand/60"
             />
             {mode !== "forgot" ? (
               <input
@@ -212,7 +215,7 @@ export function AuthScreen() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="password"
-                className="h-12 w-full rounded-xl border border-border bg-background/70 px-4 text-sm outline-none transition-colors focus:border-brand/60"
+                className="h-12 w-full rounded-xl border border-border bg-secondary px-4 text-sm outline-none transition-colors focus:border-brand/60"
               />
             ) : null}
             <motion.button
@@ -265,5 +268,6 @@ export function AuthScreen() {
         </Link>
       </motion.footer>
     </div>
+    </>
   );
 }
