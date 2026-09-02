@@ -9,7 +9,6 @@ import {
   Play,
   Settings as SettingsIcon,
   ShieldCheck,
-  Sparkles,
   Target,
   User as UserIcon,
 } from "lucide-react";
@@ -68,11 +67,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2">
-          {admin.data ? (
-            <IconLink to="/assistant" label="AI assistant">
-              <Sparkles className="size-4" />
-            </IconLink>
-          ) : null}
           <IconLink to="/settings" label="Settings">
             <SettingsIcon className="size-4" />
           </IconLink>
