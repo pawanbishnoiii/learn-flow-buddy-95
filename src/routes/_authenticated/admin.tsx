@@ -519,7 +519,12 @@ function SiteSettings() {
 
       <div className="mt-4 space-y-2">
         <Toggle
-          label="AI assistant enabled"
+          label="Manual history logging (users can add reading / class / break entries)"
+          on={value.manual_log_enabled}
+          onChange={(v) => set({ manual_log_enabled: v })}
+        />
+        <Toggle
+          label="AI features enabled"
           on={value.ai_enabled}
           onChange={(v) => set({ ai_enabled: v })}
         />
@@ -529,6 +534,7 @@ function SiteSettings() {
           onChange={(v) => set({ landing_enabled: v })}
         />
       </div>
+
 
       <label className="mt-4 block text-xs text-muted-foreground">Maintenance note</label>
       <textarea
