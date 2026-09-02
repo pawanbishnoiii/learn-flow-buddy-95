@@ -630,6 +630,8 @@ export function subjectProgress(
   sessions: Session[],
   subjects: Subject[],
   since = startOfWeek(),
+  /** weekly target is scaled to the selected scope: 1/7 for a day, 1 for a week, ~4.345 for a month */
+  targetScale = 1,
 ): SubjectProgress[] {
   const map = new Map<string, SubjectProgress>();
   for (const s of subjects) {
@@ -639,9 +641,9 @@ export function subjectProgress(
       color: s.color,
       sessions: 0,
       minutes: 0,
-      targetHours: s.weekly_target_hours ?? 0,
+      targetHours: +(((s.weekly_target_hours ?? 0) * targetScale).toFixed(2)),
       pct: 0,
-      remainingHours: s.weekly_target_hours ?? 0,
+      remainingHours: +(((s.weekly_target_hours ?? 0) * targetScale).toFixed(2)),
     });
   }
   for (const s of sessions) {
