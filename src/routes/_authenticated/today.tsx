@@ -75,6 +75,8 @@ function TodayPage() {
   const [startOpen, setStartOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [scope, setScope] = useState<"day" | "week" | "month">("week");
+  const [subjScope, setSubjScope] = useState<"1D" | "1W" | "1M">("1D");
+  const [editSubject, setEditSubject] = useState<{ id: string; name: string; hours: string } | null>(null);
 
   const [form, setForm] = useState({ subject_id: "", subject_name: "", topic: "", kind: "reading" });
   const [saveForm, setSaveForm] = useState({ topic: "", notes: "" });
@@ -131,10 +133,27 @@ function TodayPage() {
   }, [motivations.data]);
 
   const hours = useMemo(() => hourlyHeat(all), [all]);
+  const subjWindow = useMemo(() => {
+    if (subjScope === "1D") return { since: startOfToday(), scale: 1 / 7, label: "today" };
+    if (subjScope === "1W") return { since: startOfWeek(), scale: 1, label: "this week" };
+    return { since: monthStart, scale: 4.345, label: "this month" };
+  }, [subjScope, monthStart]);
+
   const progress = useMemo(
-    () => subjectProgress(all, subjects.data ?? []),
-    [all, subjects.data],
+    () => subjectProgress(all, subjects.data ?? [], subjWindow.since, subjWindow.scale),
+    [all, subjects.data, subjWindow],
   );
+
+  const saveSubjectTarget = useMutation({
+    mutationFn: async (v: { id: string; hours: number }) =>
+      updateSubject(v.id, { weekly_target_hours: v.hours }),
+    onSuccess: async () => {
+      setEditSubject(null);
+      await qc.invalidateQueries({ queryKey: ["subjects"] });
+      toast.success("Target updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const reorder = useMutation({
     mutationFn: (ids: string[]) => reorderBlocks(ids),
