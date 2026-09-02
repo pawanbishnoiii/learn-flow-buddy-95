@@ -89,7 +89,7 @@ function TargetsPage() {
           </div>
           <button
             onClick={() => setOpen(true)}
-            className="h-10 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-foreground"
+            className="h-10 shrink-0 rounded-xl bg-brand px-4 text-sm font-semibold whitespace-nowrap text-brand-foreground"
           >
             New target
           </button>
