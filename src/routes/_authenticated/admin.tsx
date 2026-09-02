@@ -310,7 +310,7 @@ function AdminPage() {
                 <li key={r.name} className="flex items-center justify-between text-xs">
                   <span className="truncate">{r.name}</span>
                   <span className="ml-3 shrink-0 font-mono text-muted-foreground">
-                    {r.sessions} · {(r.minutes / 60).toFixed(1)}h
+                    {r.sessions} · {fmtHM(r.minutes)}
                   </span>
                 </li>
               ))
