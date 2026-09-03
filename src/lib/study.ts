@@ -513,7 +513,12 @@ export type Profile = {
   phone: string | null;
   avg_study_hours: number;
   onboarded: boolean;
+  email?: string | null;
+  last_seen_at?: string | null;
+  sign_in_count?: number;
+  onboarded_at?: string | null;
 };
+
 
 export async function fetchMyProfile(): Promise<Profile | null> {
   const user_id = await uid();
@@ -540,6 +545,8 @@ export async function syncIdentityToProfile() {
     patch.display_name = (meta["full_name"] ?? meta["name"]) || null;
   if (!existing?.first_name && meta["given_name"]) patch.first_name = meta["given_name"] || null;
   if (!existing?.last_name && meta["family_name"]) patch.last_name = meta["family_name"] || null;
+  if (u.email && existing?.email !== u.email) patch.email = u.email;
+  patch.last_seen_at = new Date().toISOString();
   const { data: saved, error } = await supabase
     .from("profiles")
     .upsert(patch, { onConflict: "id" })
@@ -556,21 +563,38 @@ export async function saveOnboarding(input: {
   age: number;
   phone: string;
   avg_study_hours: number;
+  subjects?: Array<{ name: string; color: string; weekly_target_hours: number }>;
 }) {
   const user_id = await uid();
+  const { subjects, ...profile } = input;
   const { error } = await supabase
     .from("profiles")
     .upsert(
       {
         id: user_id,
-        ...input,
+        ...profile,
         display_name: `${input.first_name} ${input.last_name}`.trim(),
         onboarded: true,
+        onboarded_at: new Date().toISOString(),
       },
       { onConflict: "id" },
     );
   if (error) throw error;
+
+  const rows = (subjects ?? [])
+    .filter((s) => s.name.trim())
+    .map((s) => ({
+      user_id,
+      name: s.name.trim(),
+      color: s.color,
+      weekly_target_hours: Number(s.weekly_target_hours) || 0,
+    }));
+  if (rows.length) {
+    const { error: subErr } = await supabase.from("subjects").insert(rows);
+    if (subErr) throw subErr;
+  }
 }
+
 
 export async function isAdmin() {
   const user_id = await uid();
@@ -731,16 +755,29 @@ export type AppSettings = {
   manual_log_enabled: boolean;
   landing_enabled: boolean;
   maintenance_note: string | null;
+  signup_enabled: boolean;
+  google_auth_enabled: boolean;
+  one_tap_enabled: boolean;
+  email_auth_enabled: boolean;
+  onboarding_require_subjects: boolean;
+  default_daily_goal_hours: number;
+  default_weekly_goal_hours: number;
+  announcement_level: string;
+  accent_color: string;
 };
+
+const APP_SETTINGS_COLS =
+  "site_name,tagline,support_email,banner_text,ai_enabled,manual_log_enabled,landing_enabled,maintenance_note,signup_enabled,google_auth_enabled,one_tap_enabled,email_auth_enabled,onboarding_require_subjects,default_daily_goal_hours,default_weekly_goal_hours,announcement_level,accent_color";
 
 export async function fetchAppSettings(): Promise<AppSettings | null> {
   const { data, error } = await supabase
     .from("app_settings")
-    .select("site_name,tagline,support_email,banner_text,ai_enabled,manual_log_enabled,landing_enabled,maintenance_note")
+    .select(APP_SETTINGS_COLS)
     .maybeSingle();
   if (error) throw error;
   return (data as AppSettings) ?? null;
 }
+
 
 export async function updateAppSettings(patch: Partial<AppSettings>) {
   const { error } = await supabase.from("app_settings").update(patch).eq("id", true);
@@ -771,4 +808,73 @@ export function monthlyHistory(sessions: Session[], weeklyGoalHours: number, mon
     });
   }
   return out;
+}
+
+/* ---------------- usage telemetry + admin insights ---------------- */
+
+export async function touchLastSeen() {
+  const { error } = await supabase.rpc("touch_last_seen");
+  if (error) throw error;
+}
+
+export async function logEvent(event: string, path?: string, metadata: Record<string, unknown> = {}) {
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+  if (!user) return;
+  await supabase.from("app_events").insert({
+    user_id: user.id,
+    event,
+    path: path ?? null,
+    metadata: metadata as never,
+  });
+}
+
+export type AdminOverview = {
+  total_users: number;
+  onboarded_users: number;
+  active_today: number;
+  active_week: number;
+  sessions_today: number;
+  minutes_today: number;
+  minutes_week: number;
+  total_subjects: number;
+  events_today: number;
+};
+
+export async function fetchAdminOverview(): Promise<AdminOverview> {
+  const { data, error } = await supabase.rpc("admin_overview");
+  if (error) throw error;
+  return data as unknown as AdminOverview;
+}
+
+export type AdminUser = {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  onboarded: boolean;
+  last_seen_at: string | null;
+  created_at: string;
+  total_minutes: number;
+  session_count: number;
+};
+
+export async function fetchAdminUsers(limit = 100): Promise<AdminUser[]> {
+  const { data, error } = await supabase.rpc("admin_users", { _limit: limit });
+  if (error) throw error;
+  return (data ?? []) as unknown as AdminUser[];
+}
+
+/** "2m ago", "5h ago", "3d ago" — for admin last-seen columns */
+export function relativeTime(iso: string | null | undefined) {
+  if (!iso) return "never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }

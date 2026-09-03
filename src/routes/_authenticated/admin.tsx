@@ -32,6 +32,9 @@ import {
   type Block,
   type Subject,
   fmtHM,
+  fetchAdminOverview,
+  fetchAdminUsers,
+  relativeTime,
 } from "@/lib/study";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -199,6 +202,7 @@ function AdminPage() {
           ))}
         </section>
 
+        <UsageInsights />
         <SiteSettings />
         <EmailDelivery />
 
@@ -464,6 +468,92 @@ function Sheet({
   );
 }
 
+function UsageInsights() {
+  const overview = useQuery({ queryKey: ["admin-overview"], queryFn: fetchAdminOverview });
+  const users = useQuery({ queryKey: ["admin-users"], queryFn: () => fetchAdminUsers(100) });
+  const [q, setQ] = useState("");
+
+  const o = overview.data;
+  const stats: Array<[string, string]> = [
+    ["Total users", String(o?.total_users ?? "—")],
+    ["Onboarded", String(o?.onboarded_users ?? "—")],
+    ["Active today", String(o?.active_today ?? "—")],
+    ["Active this week", String(o?.active_week ?? "—")],
+    ["Sessions today", String(o?.sessions_today ?? "—")],
+    ["Studied today", o ? fmtHM(o.minutes_today) : "—"],
+    ["Studied this week", o ? fmtHM(o.minutes_week) : "—"],
+    ["Events today", String(o?.events_today ?? "—")],
+  ];
+
+  const list = (users.data ?? []).filter((u) =>
+    q.trim()
+      ? `${u.display_name ?? ""} ${u.email ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())
+      : true,
+  );
+
+  return (
+    <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
+      <h2 className="text-sm font-semibold">App usage</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Live activity across every account — presence updates every 2 minutes.
+      </p>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {stats.map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-border bg-background p-3">
+            <p className="text-[10px] tracking-wide text-muted-foreground uppercase">{label}</p>
+            <p className="mt-1 font-mono text-lg font-semibold">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          Users · last seen
+        </h3>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search name or email"
+          className="input h-9 w-44 text-xs"
+        />
+      </div>
+
+      <ul className="mt-3 space-y-2">
+        {users.isLoading ? <li className="text-xs text-muted-foreground">Loading…</li> : null}
+        {!users.isLoading && list.length === 0 ? (
+          <li className="text-xs text-muted-foreground">No users found.</li>
+        ) : null}
+        {list.map((u) => (
+          <li
+            key={u.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
+          >
+            {u.avatar_url ? (
+              <img src={u.avatar_url} alt="" className="size-9 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
+                {(u.display_name ?? u.email ?? "?").slice(0, 1).toUpperCase()}
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{u.display_name ?? "Unnamed"}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{u.email ?? "no email"}</p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="font-mono text-[11px]">{relativeTime(u.last_seen_at)}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {fmtHM(u.total_minutes)} · {u.session_count} sessions
+                {u.onboarded ? "" : " · onboarding"}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function SiteSettings() {
   const qc = useQueryClient();
   const settings = useQuery({ queryKey: ["app-settings"], queryFn: fetchAppSettings });
@@ -542,6 +632,69 @@ function SiteSettings() {
           on={value.landing_enabled}
           onChange={(v) => set({ landing_enabled: v })}
         />
+        <Toggle
+          label="New sign-ups allowed"
+          on={value.signup_enabled}
+          onChange={(v) => set({ signup_enabled: v })}
+        />
+        <Toggle
+          label="Google sign-in button"
+          on={value.google_auth_enabled}
+          onChange={(v) => set({ google_auth_enabled: v })}
+        />
+        <Toggle
+          label="Google One Tap prompt (auto-detect Gmail account)"
+          on={value.one_tap_enabled}
+          onChange={(v) => set({ one_tap_enabled: v })}
+        />
+        <Toggle
+          label="Email + password sign-in"
+          on={value.email_auth_enabled}
+          onChange={(v) => set({ email_auth_enabled: v })}
+        />
+        <Toggle
+          label="Require subjects during onboarding"
+          on={value.onboarding_require_subjects}
+          onChange={(v) => set({ onboarding_require_subjects: v })}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div>
+          <label className="block text-xs text-muted-foreground">Default daily goal (h)</label>
+          <input
+            type="number"
+            min={0}
+            step={0.5}
+            value={value.default_daily_goal_hours}
+            onChange={(e) => set({ default_daily_goal_hours: Number(e.target.value) })}
+            className="input mt-1"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground">Default weekly goal (h)</label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={value.default_weekly_goal_hours}
+            onChange={(e) => set({ default_weekly_goal_hours: Number(e.target.value) })}
+            className="input mt-1"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground">Banner level</label>
+          <select
+            value={value.announcement_level}
+            onChange={(e) => set({ announcement_level: e.target.value })}
+            className="input mt-1"
+          >
+            <option value="info">Info</option>
+            <option value="success">Success</option>
+            <option value="warning">Warning</option>
+            <option value="danger">Danger</option>
+          </select>
+        </div>
       </div>
 
 

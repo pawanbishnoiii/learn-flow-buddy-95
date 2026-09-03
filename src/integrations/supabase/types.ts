@@ -38,41 +38,95 @@ export type Database = {
         }
         Relationships: []
       }
+      app_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          metadata: Json
+          path: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          metadata?: Json
+          path?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          metadata?: Json
+          path?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
+          accent_color: string
           ai_enabled: boolean
+          announcement_level: string
           banner_text: string | null
           created_at: string
+          default_daily_goal_hours: number
+          default_weekly_goal_hours: number
+          email_auth_enabled: boolean
+          google_auth_enabled: boolean
           id: boolean
           landing_enabled: boolean
           maintenance_note: string | null
           manual_log_enabled: boolean
+          onboarding_require_subjects: boolean
+          one_tap_enabled: boolean
+          signup_enabled: boolean
           site_name: string
           support_email: string | null
           tagline: string
           updated_at: string
         }
         Insert: {
+          accent_color?: string
           ai_enabled?: boolean
+          announcement_level?: string
           banner_text?: string | null
           created_at?: string
+          default_daily_goal_hours?: number
+          default_weekly_goal_hours?: number
+          email_auth_enabled?: boolean
+          google_auth_enabled?: boolean
           id?: boolean
           landing_enabled?: boolean
           maintenance_note?: string | null
           manual_log_enabled?: boolean
+          onboarding_require_subjects?: boolean
+          one_tap_enabled?: boolean
+          signup_enabled?: boolean
           site_name?: string
           support_email?: string | null
           tagline?: string
           updated_at?: string
         }
         Update: {
+          accent_color?: string
           ai_enabled?: boolean
+          announcement_level?: string
           banner_text?: string | null
           created_at?: string
+          default_daily_goal_hours?: number
+          default_weekly_goal_hours?: number
+          email_auth_enabled?: boolean
+          google_auth_enabled?: boolean
           id?: boolean
           landing_enabled?: boolean
           maintenance_note?: string | null
           manual_log_enabled?: boolean
+          onboarding_require_subjects?: boolean
+          one_tap_enabled?: boolean
+          signup_enabled?: boolean
           site_name?: string
           support_email?: string | null
           tagline?: string
@@ -153,12 +207,16 @@ export type Database = {
           avg_study_hours: number
           created_at: string
           display_name: string | null
+          email: string | null
           first_name: string | null
           gender: string | null
           id: string
           last_name: string | null
+          last_seen_at: string | null
           onboarded: boolean
+          onboarded_at: string | null
           phone: string | null
+          sign_in_count: number
           timezone: string
           updated_at: string
         }
@@ -168,12 +226,16 @@ export type Database = {
           avg_study_hours?: number
           created_at?: string
           display_name?: string | null
+          email?: string | null
           first_name?: string | null
           gender?: string | null
           id: string
           last_name?: string | null
+          last_seen_at?: string | null
           onboarded?: boolean
+          onboarded_at?: string | null
           phone?: string | null
+          sign_in_count?: number
           timezone?: string
           updated_at?: string
         }
@@ -183,12 +245,16 @@ export type Database = {
           avg_study_hours?: number
           created_at?: string
           display_name?: string | null
+          email?: string | null
           first_name?: string | null
           gender?: string | null
           id?: string
           last_name?: string | null
+          last_seen_at?: string | null
           onboarded?: boolean
+          onboarded_at?: string | null
           phone?: string | null
+          sign_in_count?: number
           timezone?: string
           updated_at?: string
         }
@@ -480,6 +546,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_overview: { Args: never; Returns: Json }
+      admin_users: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          last_seen_at: string
+          onboarded: boolean
+          session_count: number
+          total_minutes: number
+        }[]
+      }
       close_stale_sessions: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -488,6 +569,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
@@ -506,12 +588,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -535,11 +617,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -560,11 +642,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -585,11 +667,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -602,11 +684,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

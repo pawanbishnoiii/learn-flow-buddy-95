@@ -22,9 +22,12 @@ import {
   minutesInRange,
   startOfToday,
   syncIdentityToProfile,
+  touchLastSeen,
+  logEvent,
 } from "@/lib/study";
 import { dailyHitStreak } from "@/lib/streak";
 import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher";
+import { LimelightNav } from "@/components/ui/limelight-nav";
 
 
 const NAV = [
@@ -63,6 +66,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMenu(false);
   }, [pathname]);
+
+  // Presence heartbeat + lightweight page-view telemetry for the admin console.
+  useEffect(() => {
+    void touchLastSeen().catch(() => {});
+    void logEvent("page_view", pathname).catch(() => {});
+  }, [pathname]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") void touchLastSeen().catch(() => {});
+    }, 120_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   // Sticky mini progress reveals itself once the hero card scrolls away.
   useEffect(() => {
@@ -207,15 +223,26 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
-        <div className="glass-panel pointer-events-auto mx-auto grid max-w-md grid-cols-5 items-end gap-1 rounded-[26px] px-2 py-2">
-
-          {NAV.map(({ to, label, Icon, ...rest }) => {
+        <LimelightNav
+          className="glass-panel pointer-events-auto mx-auto max-w-md"
+          activeIndex={Math.max(
+            0,
+            NAV.findIndex((n) => n.to === pathname),
+          )}
+          onTabChange={(i) => {
+            const target = NAV[i];
+            if (target) navigate({ to: target.to });
+          }}
+          items={NAV.map(({ to, label, Icon, ...rest }) => {
             const active = pathname === to;
             const center = "center" in rest && rest.center;
-
-            if (center) {
-              return (
-                <Link key={to} to={to} aria-label={label} className="flex flex-col items-center gap-1">
+            return {
+              id: to,
+              label,
+              icon: <Icon />,
+              center,
+              content: center ? (
+                <>
                   <motion.span
                     whileTap={{ scale: 0.9 }}
                     className={`grid size-12 -translate-y-3 place-items-center rounded-2xl transition-colors duration-300 ${
@@ -233,45 +260,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   >
                     {label}
                   </span>
-                </Link>
-              );
-            }
-
-            return (
-              <Link
-                key={to}
-                to={to}
-                aria-label={label}
-                className="relative flex flex-col items-center gap-1 py-1"
-              >
-                <motion.span
-                  whileTap={{ scale: 0.9 }}
-                  className={`relative grid h-9 w-full max-w-[58px] place-items-center rounded-2xl transition-colors duration-300 ${
-                    active ? "text-brand" : "text-muted-foreground"
-                  }`}
-                >
-                  {active ? (
-                    <motion.span
-                      layoutId="nav-pill"
-                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                      className="absolute inset-0 rounded-2xl bg-[linear-gradient(135deg,color-mix(in_oklab,var(--accent-start)_22%,transparent),color-mix(in_oklab,var(--accent-end)_18%,transparent))] ring-1 ring-brand/25"
-                    />
-                  ) : null}
-                  <Icon className="relative size-[18px]" />
-                </motion.span>
-                <span
-                  className={`text-[10px] font-medium transition-colors ${
-                    active ? "text-brand" : "text-muted-foreground"
-                  }`}
-                >
-                  {label}
-                </span>
-              </Link>
-            );
+                </>
+              ) : undefined,
+            };
           })}
-        </div>
-
+        />
       </nav>
+
 
     </div>
   );
