@@ -146,6 +146,17 @@ function OnboardingPage() {
           className="mt-2 w-full accent-[var(--brand)]"
         />
 
+        <div className="mt-6">
+          <AvatarPicker avatarUrl={profile.data?.avatar_url} displayName={profile.data?.display_name} />
+        </div>
+
+        <div className="mt-4">
+          <SubjectsManager
+            title="Your subjects"
+            subtitle="Jo subjects padhte ho unhe abhi add kar lo — timer aur targets inhi par chalenge."
+          />
+        </div>
+
         <button
           onClick={() => save.mutate()}
           disabled={save.isPending}
