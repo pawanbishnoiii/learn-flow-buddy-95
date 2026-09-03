@@ -809,3 +809,72 @@ export function monthlyHistory(sessions: Session[], weeklyGoalHours: number, mon
   }
   return out;
 }
+
+/* ---------------- usage telemetry + admin insights ---------------- */
+
+export async function touchLastSeen() {
+  const { error } = await supabase.rpc("touch_last_seen");
+  if (error) throw error;
+}
+
+export async function logEvent(event: string, path?: string, metadata: Record<string, unknown> = {}) {
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+  if (!user) return;
+  await supabase.from("app_events").insert({
+    user_id: user.id,
+    event,
+    path: path ?? null,
+    metadata: metadata as never,
+  });
+}
+
+export type AdminOverview = {
+  total_users: number;
+  onboarded_users: number;
+  active_today: number;
+  active_week: number;
+  sessions_today: number;
+  minutes_today: number;
+  minutes_week: number;
+  total_subjects: number;
+  events_today: number;
+};
+
+export async function fetchAdminOverview(): Promise<AdminOverview> {
+  const { data, error } = await supabase.rpc("admin_overview");
+  if (error) throw error;
+  return data as unknown as AdminOverview;
+}
+
+export type AdminUser = {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  onboarded: boolean;
+  last_seen_at: string | null;
+  created_at: string;
+  total_minutes: number;
+  session_count: number;
+};
+
+export async function fetchAdminUsers(limit = 100): Promise<AdminUser[]> {
+  const { data, error } = await supabase.rpc("admin_users", { _limit: limit });
+  if (error) throw error;
+  return (data ?? []) as unknown as AdminUser[];
+}
+
+/** "2m ago", "5h ago", "3d ago" — for admin last-seen columns */
+export function relativeTime(iso: string | null | undefined) {
+  if (!iso) return "never";
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
