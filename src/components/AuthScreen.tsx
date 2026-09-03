@@ -1,16 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
+import { Bell, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { GoogleOneTap, promptGoogleOneTap } from "@/components/GoogleOneTap";
-import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher";
-import { RadialBackground } from "@/components/ui/light-theme-tailwind-css-background-snippet";
+import teacher from "@/assets/auth-teacher.png";
 
 function GoogleMark() {
   return (
-    <svg viewBox="0 0 48 48" className="size-[18px]" aria-hidden>
+    <svg viewBox="0 0 48 48" className="size-5" aria-hidden>
       <path
         fill="#FFC107"
         d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"
@@ -31,11 +31,17 @@ function GoogleMark() {
   );
 }
 
+const float = (delay: number) => ({
+  animate: { y: [0, -10, 0] },
+  transition: { duration: 4, repeat: Infinity, ease: "easeInOut" as const, delay },
+});
+
 export function AuthScreen() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const routed = useRef(false);
@@ -66,7 +72,6 @@ export function AuthScreen() {
   async function google() {
     setBusy(true);
     try {
-      // Preferred path: Google One Tap card — no page redirect at all.
       const shown = await promptGoogleOneTap();
       if (shown) {
         setBusy(false);
@@ -129,143 +134,176 @@ export function AuthScreen() {
     }
   }
 
+  const inputCls =
+    "h-14 w-full rounded-2xl bg-[#F4F2FB] px-5 text-[15px] font-medium text-[#111827] placeholder:text-[#9CA3AF] outline-none ring-1 ring-transparent transition focus:ring-2 focus:ring-[#8B5CF6]/40";
 
   return (
-    <div className="grid-lines relative flex min-h-[100svh] flex-col overflow-hidden bg-background px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+    <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-gradient-to-b from-[#E4DDFB] via-[#DCD6F7] to-[#CFC7F3]">
       <GoogleOneTap />
-      <RadialBackground />
 
-      <motion.header
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="flex items-center gap-3"
-      >
-        <span className="grid size-10 place-items-center rounded-2xl bg-brand/10 ring-1 ring-brand/25">
-          <svg viewBox="0 0 24 24" className="size-5 text-brand" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="13" r="8" />
-            <path d="M12 9v4l2.5 2M9 2h6" strokeLinecap="round" />
-          </svg>
-        </span>
-        <span>
-          <span className="block text-sm leading-none font-semibold tracking-tight">Chronodeck</span>
-          <span className="mt-1 block font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
-            Study OS
+      {/* decorative blobs */}
+      <div className="pointer-events-none absolute -top-24 -left-20 size-64 rounded-full bg-white/40 blur-2xl" />
+      <div className="pointer-events-none absolute top-24 -right-16 size-56 rounded-full bg-[#FACC15]/25 blur-2xl" />
+
+      <header className="relative z-10 flex items-center justify-between px-6 pt-[calc(1.25rem+env(safe-area-inset-top))]">
+        <div className="flex items-center gap-2.5">
+          <span className="grid size-10 place-items-center rounded-2xl bg-[#111827] text-white shadow-lg shadow-[#8B5CF6]/25">
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="13" r="8" />
+              <path d="M12 9v4l2.5 2M9 2h6" strokeLinecap="round" />
+            </svg>
           </span>
-        </span>
-        <span className="ml-auto">
-          <CinematicThemeSwitcher />
-        </span>
-      </motion.header>
-
-      <main className="flex flex-1 flex-col justify-center py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="glass-panel mx-auto w-full max-w-sm p-6"
+          <span className="text-[19px] leading-none font-extrabold tracking-tight text-[#111827]">Chronodeck</span>
+        </div>
+        <button
+          type="button"
+          aria-label="Notifications"
+          className="grid size-11 place-items-center rounded-full border border-white/70 bg-white/60 text-[#111827] backdrop-blur"
         >
-          <p className="font-mono text-[10px] tracking-[0.3em] text-brand uppercase">
-            {mode === "signin" ? "Welcome back" : mode === "signup" ? "Get started" : "Password reset"}
-          </p>
-          <h1 className="mt-2 text-[28px] leading-[1.1] font-semibold tracking-tight">
-            {mode === "signin"
-              ? "Sign in to your deck"
-              : mode === "signup"
-                ? "Create your deck"
-                : "Reset your password"}
-          </h1>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            {mode === "forgot"
-              ? "Email daalo — hum reset link bhej denge."
-              : "Timer, timetable, targets and your AI study manager — all behind one tap."}
-          </p>
+          <Bell className="size-5" />
+        </button>
+      </header>
 
-          <motion.button
-            whileTap={{ scale: 0.97 }}
-            onClick={google}
-            disabled={busy}
-            className="mt-6 flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-sm font-semibold text-brand-foreground transition-opacity disabled:opacity-60"
-          >
-            <GoogleMark />
-            {busy ? "Please wait…" : "Continue with Google"}
-          </motion.button>
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6">
+        <motion.img
+          src={teacher}
+          alt="3D illustration of a teacher beside a whiteboard with books"
+          width={1024}
+          height={1024}
+          initial={{ opacity: 0, y: 24, scale: 0.94 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="max-h-[38svh] w-auto object-contain drop-shadow-[0_24px_40px_rgba(80,50,160,0.28)]"
+        />
+        <motion.span
+          {...float(0.2)}
+          className="absolute top-4 left-7 size-3 rounded-full bg-[#F472B6] shadow-lg"
+          aria-hidden
+        />
+        <motion.span
+          {...float(0.8)}
+          className="absolute right-8 bottom-10 size-4 rounded-full bg-[#A3E635] shadow-lg"
+          aria-hidden
+        />
+        <motion.span
+          {...float(1.4)}
+          className="absolute top-14 right-14 size-2.5 rounded-full bg-[#FACC15] shadow-lg"
+          aria-hidden
+        />
+      </div>
 
-          <div className="my-5 flex items-center gap-3 font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-            <span className="h-px flex-1 bg-border" /> or email <span className="h-px flex-1 bg-border" />
-          </div>
+      <motion.section
+        initial={{ y: 60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+        className="relative z-10 mt-auto rounded-t-[40px] bg-white px-6 pt-7 pb-[calc(1.75rem+env(safe-area-inset-bottom))] shadow-[0_-20px_50px_rgba(76,45,140,0.18)]"
+      >
+        <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-[#E5E7EB]" />
 
-          <form onSubmit={withEmail} className="space-y-2.5">
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@email.com"
-              className="h-12 w-full rounded-xl border border-border bg-secondary px-4 text-sm outline-none transition-colors focus:border-brand/60"
-            />
-            {mode !== "forgot" ? (
+        <h1 className="text-[26px] leading-[1.15] font-extrabold tracking-tight text-[#111827]">
+          {mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your deck" : "Reset password"}
+        </h1>
+        <p className="mt-1.5 text-sm font-medium text-[#6B7280]">
+          {mode === "forgot"
+            ? "Email daalo — hum reset link bhej denge."
+            : "Timer, timetable, targets aur AI study manager — ek tap mein."}
+        </p>
+
+        <button
+          onClick={google}
+          disabled={busy}
+          className="mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-full border border-[#E5E7EB] bg-white text-[15px] font-bold text-[#111827] shadow-sm transition active:scale-[0.98] disabled:opacity-60"
+        >
+          <GoogleMark />
+          Continue with Google
+        </button>
+
+        <div className="my-5 flex items-center gap-3 text-[11px] font-bold tracking-widest text-[#9CA3AF] uppercase">
+          <span className="h-px flex-1 bg-[#EEF0F4]" /> or <span className="h-px flex-1 bg-[#EEF0F4]" />
+        </div>
+
+        <form onSubmit={withEmail} className="space-y-3">
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email address"
+            className={inputCls}
+          />
+          {mode !== "forgot" ? (
+            <div className="relative">
               <input
-                type="password"
+                type={showPw ? "text" : "password"}
                 required
                 minLength={6}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="password"
-                className="h-12 w-full rounded-xl border border-border bg-secondary px-4 text-sm outline-none transition-colors focus:border-brand/60"
+                placeholder="Password"
+                className={`${inputCls} pr-14`}
               />
-            ) : null}
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={busy}
-              className="h-12 w-full rounded-xl border border-border text-sm font-medium transition-colors hover:border-brand/50 disabled:opacity-60"
-            >
-              {mode === "signin"
-                ? "Sign in with email"
-                : mode === "signup"
-                  ? "Sign up with email"
-                  : "Send reset link"}
-            </motion.button>
-          </form>
-
-          <div className="mt-5 flex flex-col items-center gap-2">
-            <AnimatePresence mode="wait">
-              <motion.button
-                key={mode}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.18 }}
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                className="w-full text-center font-mono text-[11px] text-muted-foreground transition-colors hover:text-brand"
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? "Hide password" : "Show password"}
+                className="absolute top-1/2 right-4 -translate-y-1/2 text-[#9CA3AF]"
               >
-                {mode === "signin" ? "No account? Create one" : "Already have an account? Sign in"}
-              </motion.button>
-            </AnimatePresence>
-            <button
-              type="button"
-              onClick={() => setMode(mode === "forgot" ? "signin" : "forgot")}
-              className="font-mono text-[11px] text-muted-foreground transition-colors hover:text-brand"
-            >
-              {mode === "forgot" ? "Back to sign in" : "Forgot password?"}
-            </button>
-          </div>
-        </motion.div>
-      </main>
+                {showPw ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+              </button>
+            </div>
+          ) : null}
 
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="text-center font-mono text-[10px] text-muted-foreground"
-      >
-        <Link to="/welcome" className="transition-colors hover:text-brand">
-          What is Chronodeck? →
-        </Link>
-      </motion.footer>
+          {mode !== "forgot" ? (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setMode("forgot")}
+                className="text-[13px] font-semibold text-[#8B5CF6]"
+              >
+                Forgot password?
+              </button>
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="flex h-15 w-full items-center justify-center gap-2 rounded-full bg-[#111827] py-4 text-[15px] font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
+          >
+            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            {mode === "signin" ? "Sign in with Email" : mode === "signup" ? "Sign up with Email" : "Send reset link"}
+          </button>
+        </form>
+
+        <div className="mt-5 flex flex-col items-center gap-1">
+          <AnimatePresence mode="wait">
+            <motion.button
+              key={mode}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              className="text-[13px] font-semibold text-[#6B7280]"
+            >
+              {mode === "signin" ? (
+                <>
+                  No account? <span className="text-[#8B5CF6]">Create one</span>
+                </>
+              ) : (
+                <>
+                  Already have an account? <span className="text-[#8B5CF6]">Sign in</span>
+                </>
+              )}
+            </motion.button>
+          </AnimatePresence>
+          <Link to="/welcome" className="text-[12px] font-medium text-[#9CA3AF]">
+            What is Chronodeck? →
+          </Link>
+        </div>
+      </motion.section>
     </div>
   );
 }
