@@ -731,16 +731,29 @@ export type AppSettings = {
   manual_log_enabled: boolean;
   landing_enabled: boolean;
   maintenance_note: string | null;
+  signup_enabled: boolean;
+  google_auth_enabled: boolean;
+  one_tap_enabled: boolean;
+  email_auth_enabled: boolean;
+  onboarding_require_subjects: boolean;
+  default_daily_goal_hours: number;
+  default_weekly_goal_hours: number;
+  announcement_level: string;
+  accent_color: string;
 };
+
+const APP_SETTINGS_COLS =
+  "site_name,tagline,support_email,banner_text,ai_enabled,manual_log_enabled,landing_enabled,maintenance_note,signup_enabled,google_auth_enabled,one_tap_enabled,email_auth_enabled,onboarding_require_subjects,default_daily_goal_hours,default_weekly_goal_hours,announcement_level,accent_color";
 
 export async function fetchAppSettings(): Promise<AppSettings | null> {
   const { data, error } = await supabase
     .from("app_settings")
-    .select("site_name,tagline,support_email,banner_text,ai_enabled,manual_log_enabled,landing_enabled,maintenance_note")
+    .select(APP_SETTINGS_COLS)
     .maybeSingle();
   if (error) throw error;
   return (data as AppSettings) ?? null;
 }
+
 
 export async function updateAppSettings(patch: Partial<AppSettings>) {
   const { error } = await supabase.from("app_settings").update(patch).eq("id", true);
