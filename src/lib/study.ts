@@ -513,7 +513,12 @@ export type Profile = {
   phone: string | null;
   avg_study_hours: number;
   onboarded: boolean;
+  email?: string | null;
+  last_seen_at?: string | null;
+  sign_in_count?: number;
+  onboarded_at?: string | null;
 };
+
 
 export async function fetchMyProfile(): Promise<Profile | null> {
   const user_id = await uid();
