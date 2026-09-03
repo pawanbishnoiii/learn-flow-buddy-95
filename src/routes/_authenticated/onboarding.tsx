@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Icon3D } from "@/components/Icon3D";
 import { fetchMyProfile, saveOnboarding, syncIdentityToProfile } from "@/lib/study";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { SubjectsManager } from "@/components/SubjectsManager";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   ssr: false,
