@@ -251,31 +251,38 @@ function StudyModePage() {
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">Set up your session</h1>
             <p className="mt-1 text-xs text-white/40">Subject chuno, category pick karo, aur timer chalao.</p>
 
-            <label className="mt-5 block font-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">
-              subject
-            </label>
-            <select
-              value={form.subject_id}
-              onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
-              className="mt-2 h-12 w-full rounded-xl border border-white/12 bg-white/5 px-3 text-sm text-white"
-            >
-              <option value="" className="text-black">
-                Custom subject…
-              </option>
-              {(subjects.data ?? []).map((x) => (
-                <option key={x.id} value={x.id} className="text-black">
-                  {x.name}
-                </option>
-              ))}
-            </select>
-            {!form.subject_id ? (
-              <input
-                value={form.subject_name}
-                onChange={(e) => setForm({ ...form, subject_name: e.target.value })}
-                placeholder="Subject name"
-                className="mt-2 h-12 w-full rounded-xl border border-white/12 bg-white/5 px-3 text-sm text-white placeholder:text-white/30"
-              />
-            ) : null}
+            <div className="mt-5 flex items-center justify-between">
+              <label className="font-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">subject</label>
+              <button
+                type="button"
+                onClick={() => setSubjectSheet(true)}
+                className="rounded-full border border-white/20 px-3 py-1.5 text-[11px] font-bold text-white/80"
+              >
+                + Add subject
+              </button>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(subjects.data ?? []).length === 0 ? (
+                <p className="text-xs text-white/40">Koi subject nahi — pehle ek subject add karo.</p>
+              ) : null}
+              {(subjects.data ?? []).map((x) => {
+                const on = form.subject_id === x.id;
+                return (
+                  <button
+                    key={x.id}
+                    type="button"
+                    onClick={() => setForm({ ...form, subject_id: x.id, subject_name: x.name })}
+                    aria-pressed={on}
+                    className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition ${
+                      on ? "border-transparent bg-white text-black" : "border-white/15 text-white/70"
+                    }`}
+                  >
+                    <span className="size-2.5 rounded-full" style={{ background: x.color }} />
+                    {x.name}
+                  </button>
+                );
+              })}
+            </div>
             <input
               value={form.topic}
               onChange={(e) => setForm({ ...form, topic: e.target.value })}
