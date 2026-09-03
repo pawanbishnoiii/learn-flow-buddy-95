@@ -201,7 +201,7 @@ export function AuthScreen() {
         <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-[#E5E7EB]" />
 
         <h1 className="text-[26px] leading-[1.15] font-extrabold tracking-tight text-[#111827]">
-          {mode === "signin" ? "Welcome back 👋" : mode === "signup" ? "Create your deck" : "Reset password"}
+          {mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your deck" : "Reset password"}
         </h1>
         <p className="mt-1.5 text-sm font-medium text-[#6B7280]">
           {mode === "forgot"
