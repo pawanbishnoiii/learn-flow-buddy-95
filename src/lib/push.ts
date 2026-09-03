@@ -105,3 +105,21 @@ export async function enablePush(): Promise<PushResult> {
 
   return { status: "registered", token };
 }
+
+/** Resolves once the registration has an activated worker (or times out). */
+async function waitForActive(reg: ServiceWorkerRegistration): Promise<void> {
+  if (reg.active) return;
+  const worker = reg.installing ?? reg.waiting;
+  if (!worker) return;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      worker.removeEventListener("statechange", onChange);
+      resolve();
+    };
+    const onChange = () => {
+      if (worker.state === "activated" || worker.state === "redundant") done();
+    };
+    worker.addEventListener("statechange", onChange);
+    setTimeout(done, 10_000);
+  });
+}
