@@ -16,6 +16,7 @@ import {
   startSession,
   stopSession,
 } from "@/lib/study";
+import { SubjectsManager } from "@/components/SubjectsManager";
 
 /** A single session can never exceed 8 hours. */
 const MAX_SESSION_SECONDS = 8 * 3600;
