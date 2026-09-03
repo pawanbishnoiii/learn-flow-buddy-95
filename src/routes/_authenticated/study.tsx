@@ -547,6 +547,43 @@ function StudyModePage() {
         </motion.div>
       )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {subjectSheet ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-end bg-black/60 backdrop-blur-sm"
+            onClick={() => setSubjectSheet(false)}
+          >
+            <motion.div
+              initial={{ y: 80 }}
+              animate={{ y: 0 }}
+              exit={{ y: 80 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[85vh] w-full overflow-y-auto rounded-t-[40px] bg-background p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-foreground"
+            >
+              <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-border" />
+              <SubjectsManager
+                selectedId={form.subject_id}
+                onSelect={(s) => {
+                  setForm((f) => ({ ...f, subject_id: s.id, subject_name: s.name }));
+                  setSubjectSheet(false);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setSubjectSheet(false)}
+                className="mt-4 h-12 w-full rounded-full border border-border text-sm font-semibold"
+              >
+                Done
+              </button>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </motion.div>
   );
 }
