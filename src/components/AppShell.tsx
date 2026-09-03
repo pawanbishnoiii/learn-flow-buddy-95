@@ -22,9 +22,12 @@ import {
   minutesInRange,
   startOfToday,
   syncIdentityToProfile,
+  touchLastSeen,
+  logEvent,
 } from "@/lib/study";
 import { dailyHitStreak } from "@/lib/streak";
 import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher";
+import { LimelightNav } from "@/components/ui/limelight-nav";
 
 
 const NAV = [
@@ -63,6 +66,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMenu(false);
   }, [pathname]);
+
+  // Presence heartbeat + lightweight page-view telemetry for the admin console.
+  useEffect(() => {
+    void touchLastSeen().catch(() => {});
+    void logEvent("page_view", pathname).catch(() => {});
+  }, [pathname]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") void touchLastSeen().catch(() => {});
+    }, 120_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   // Sticky mini progress reveals itself once the hero card scrolls away.
   useEffect(() => {

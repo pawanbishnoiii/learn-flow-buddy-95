@@ -101,7 +101,7 @@ export function LimelightNav({
                 iconClassName,
               ),
             })}
-          {label ? (
+          {label && !content ? (
             <span
               className={cn(
                 "text-[10px] font-medium transition-colors",
