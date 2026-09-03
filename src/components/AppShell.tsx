@@ -28,6 +28,7 @@ import {
 import { dailyHitStreak } from "@/lib/streak";
 import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher";
 import { LimelightNav } from "@/components/ui/limelight-nav";
+import { PushPrompt } from "@/components/PushPrompt";
 
 
 const NAV = [
@@ -221,6 +222,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </motion.div>
         </AnimatePresence>
       </main>
+      <PushPrompt />
 
       <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(0.6rem+env(safe-area-inset-bottom))]">
         <LimelightNav

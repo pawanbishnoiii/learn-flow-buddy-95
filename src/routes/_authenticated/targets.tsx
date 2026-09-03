@@ -15,6 +15,7 @@ import {
   startOfWeek,
 } from "@/lib/study";
 import { ProgressRing } from "@/components/motion/gsap-bits";
+import { SubjectsManager } from "@/components/SubjectsManager";
 
 const EIGHT_WEEKS = new Date(Date.now() - 8 * 7 * 864e5).toISOString();
 
@@ -103,6 +104,10 @@ function TargetsPage() {
             sub={`${fmtHM(weekMin)} / ${fmtHM(weeklyGoal * 60)}`}
           />
         </div>
+      </section>
+
+      <section className="mt-5 px-4">
+        <SubjectsManager />
       </section>
 
       <section className="mt-5 space-y-3 px-5">

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Icon3D } from "@/components/Icon3D";
 import { fetchMyProfile, saveOnboarding, syncIdentityToProfile } from "@/lib/study";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { SubjectsManager } from "@/components/SubjectsManager";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   ssr: false,
@@ -145,6 +147,17 @@ function OnboardingPage() {
           onChange={(e) => setForm({ ...form, avg_study_hours: e.target.value })}
           className="mt-2 w-full accent-[var(--brand)]"
         />
+
+        <div className="mt-6">
+          <AvatarPicker avatarUrl={profile.data?.avatar_url} displayName={profile.data?.display_name} />
+        </div>
+
+        <div className="mt-4">
+          <SubjectsManager
+            title="Your subjects"
+            subtitle="Jo subjects padhte ho unhe abhi add kar lo — timer aur targets inhi par chalenge."
+          />
+        </div>
 
         <button
           onClick={() => save.mutate()}
