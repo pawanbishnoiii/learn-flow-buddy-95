@@ -15,6 +15,7 @@ import {
   startOfWeek,
 } from "@/lib/study";
 import { ProgressRing } from "@/components/motion/gsap-bits";
+import { SubjectsManager } from "@/components/SubjectsManager";
 
 const EIGHT_WEEKS = new Date(Date.now() - 8 * 7 * 864e5).toISOString();
 
