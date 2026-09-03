@@ -545,6 +545,8 @@ export async function syncIdentityToProfile() {
     patch.display_name = (meta["full_name"] ?? meta["name"]) || null;
   if (!existing?.first_name && meta["given_name"]) patch.first_name = meta["given_name"] || null;
   if (!existing?.last_name && meta["family_name"]) patch.last_name = meta["family_name"] || null;
+  if (u.email && existing?.email !== u.email) patch.email = u.email;
+  patch.last_seen_at = new Date().toISOString();
   const { data: saved, error } = await supabase
     .from("profiles")
     .upsert(patch, { onConflict: "id" })
@@ -561,21 +563,38 @@ export async function saveOnboarding(input: {
   age: number;
   phone: string;
   avg_study_hours: number;
+  subjects?: Array<{ name: string; color: string; weekly_target_hours: number }>;
 }) {
   const user_id = await uid();
+  const { subjects, ...profile } = input;
   const { error } = await supabase
     .from("profiles")
     .upsert(
       {
         id: user_id,
-        ...input,
+        ...profile,
         display_name: `${input.first_name} ${input.last_name}`.trim(),
         onboarded: true,
+        onboarded_at: new Date().toISOString(),
       },
       { onConflict: "id" },
     );
   if (error) throw error;
+
+  const rows = (subjects ?? [])
+    .filter((s) => s.name.trim())
+    .map((s) => ({
+      user_id,
+      name: s.name.trim(),
+      color: s.color,
+      weekly_target_hours: Number(s.weekly_target_hours) || 0,
+    }));
+  if (rows.length) {
+    const { error: subErr } = await supabase.from("subjects").insert(rows);
+    if (subErr) throw subErr;
+  }
 }
+
 
 export async function isAdmin() {
   const user_id = await uid();
