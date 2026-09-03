@@ -48,7 +48,7 @@ export function LimelightNav({
   useLayoutEffect(() => {
     const limelight = limelightRef.current;
     const activeItem = navItemRefs.current[activeIndex];
-    if (!limelight || !activeItem) return;
+    if (!limelight || !activeItem) return undefined;
 
     const newLeft =
       activeItem.offsetLeft + activeItem.offsetWidth / 2 - limelight.offsetWidth / 2;
@@ -58,7 +58,9 @@ export function LimelightNav({
       const t = window.setTimeout(() => setIsReady(true), 60);
       return () => window.clearTimeout(t);
     }
+    return undefined;
   }, [activeIndex, isReady, items]);
+
 
   if (items.length === 0) return null;
 
