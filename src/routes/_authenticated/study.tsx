@@ -94,6 +94,7 @@ function StudyModePage() {
     planned_end_at: "",
   });
   const [saveForm, setSaveForm] = useState({ topic: "", notes: "" });
+  const [subjectSheet, setSubjectSheet] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchY = useRef<number | null>(null);
 
