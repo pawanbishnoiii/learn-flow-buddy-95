@@ -361,6 +361,52 @@ function StudyModePage() {
           <p className="mt-8 text-sm font-medium text-white/70">{s.subject_name ?? "Study"}</p>
           {s.topic ? <p className="mt-1 text-xs text-white/35">{s.topic}</p> : null}
 
+          {/* Live session details — recomputed every tick alongside the clock. */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 px-6">
+            {[
+              { l: "kind", v: s.kind },
+              {
+                l: "started",
+                v: new Date(s.started_at).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              },
+              {
+                l: "focus",
+                v: `${Math.floor(elapsed / 3600)}h ${String(Math.floor((elapsed % 3600) / 60)).padStart(2, "0")}m`,
+              },
+              { l: "breaks", v: `${s.break_minutes ?? 0}m` },
+              ...(s.planned_end_at
+                ? [
+                    {
+                      l: "ends",
+                      v: new Date(s.planned_end_at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }),
+                    },
+                  ]
+                : []),
+            ].map((d) => (
+              <span
+                key={d.l}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[10px] tracking-widest text-white/50 uppercase"
+              >
+                {d.l} · <span className="text-white/80">{d.v}</span>
+              </span>
+            ))}
+          </div>
+
+          {/* Slow-motion dim: light fades away gently over the first two minutes. */}
+          <motion.span
+            aria-hidden
+            className="pointer-events-none fixed inset-0 -z-10 bg-black"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: openBreak.data ? 0.2 : 0.55 }}
+            transition={{ duration: 120, ease: "linear" }}
+          />
+
           <AnimatePresence>
             {controls ? (
               <motion.div

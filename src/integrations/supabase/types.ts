@@ -69,7 +69,12 @@ export type Database = {
         Row: {
           accent_color: string
           ai_enabled: boolean
+          android_force_update: boolean
+          android_latest_version: string | null
+          android_min_version: string | null
+          android_update_url: string | null
           announcement_level: string
+          avatar_upload_enabled: boolean
           banner_text: string | null
           created_at: string
           default_daily_goal_hours: number
@@ -82,6 +87,7 @@ export type Database = {
           manual_log_enabled: boolean
           onboarding_require_subjects: boolean
           one_tap_enabled: boolean
+          push_enabled: boolean
           signup_enabled: boolean
           site_name: string
           support_email: string | null
@@ -91,7 +97,12 @@ export type Database = {
         Insert: {
           accent_color?: string
           ai_enabled?: boolean
+          android_force_update?: boolean
+          android_latest_version?: string | null
+          android_min_version?: string | null
+          android_update_url?: string | null
           announcement_level?: string
+          avatar_upload_enabled?: boolean
           banner_text?: string | null
           created_at?: string
           default_daily_goal_hours?: number
@@ -104,6 +115,7 @@ export type Database = {
           manual_log_enabled?: boolean
           onboarding_require_subjects?: boolean
           one_tap_enabled?: boolean
+          push_enabled?: boolean
           signup_enabled?: boolean
           site_name?: string
           support_email?: string | null
@@ -113,7 +125,12 @@ export type Database = {
         Update: {
           accent_color?: string
           ai_enabled?: boolean
+          android_force_update?: boolean
+          android_latest_version?: string | null
+          android_min_version?: string | null
+          android_update_url?: string | null
           announcement_level?: string
+          avatar_upload_enabled?: boolean
           banner_text?: string | null
           created_at?: string
           default_daily_goal_hours?: number
@@ -126,11 +143,75 @@ export type Database = {
           manual_log_enabled?: boolean
           onboarding_require_subjects?: boolean
           one_tap_enabled?: boolean
+          push_enabled?: boolean
           signup_enabled?: boolean
           site_name?: string
           support_email?: string | null
           tagline?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      avatar_presets: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      device_tokens: {
+        Row: {
+          created_at: string
+          device_label: string | null
+          id: string
+          last_seen_at: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_label?: string | null
+          id?: string
+          last_seen_at?: string
+          platform?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_label?: string | null
+          id?: string
+          last_seen_at?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -166,6 +247,45 @@ export type Database = {
           smtp_password?: string | null
           smtp_port?: number | null
           smtp_user?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          last_error: string | null
+          payload: Json
+          run_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          last_error?: string | null
+          payload?: Json
+          run_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          last_error?: string | null
+          payload?: Json
+          run_at?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -208,28 +328,37 @@ export type Database = {
       }
       notifications: {
         Row: {
+          action_path: string | null
           body: string | null
           created_at: string | null
+          created_by: string | null
           id: string
           kind: string | null
+          push_sent: boolean
           read: boolean | null
           title: string
           user_id: string | null
         }
         Insert: {
+          action_path?: string | null
           body?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           kind?: string | null
+          push_sent?: boolean
           read?: boolean | null
           title: string
           user_id?: string | null
         }
         Update: {
+          action_path?: string | null
           body?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           kind?: string | null
+          push_sent?: boolean
           read?: boolean | null
           title?: string
           user_id?: string | null

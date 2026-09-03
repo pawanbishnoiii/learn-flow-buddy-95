@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Icon3D } from "@/components/Icon3D";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { PushToggle } from "@/components/PushToggle";
 import {
   fetchSessions,
   fmtHM,
@@ -111,6 +113,13 @@ function ProfilePage() {
             </Link>
           ) : null}
         </section>
+
+        <AvatarPicker
+          avatarUrl={profile.data?.avatar_url}
+          displayName={profile.data?.display_name}
+        />
+
+        <PushToggle />
 
         <section className="grid grid-cols-3 gap-3">
           {[

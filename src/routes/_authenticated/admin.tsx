@@ -1,3 +1,6 @@
+import { AdminPushPanel } from "@/components/admin/AdminPushPanel";
+import { AdminAppControlPanel } from "@/components/admin/AdminAppControlPanel";
+import { AdminAvatarPanel } from "@/components/admin/AdminAvatarPanel";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -331,6 +334,10 @@ function AdminPage() {
             )}
           </ul>
         </section>
+
+        <AdminPushPanel />
+        <AdminAppControlPanel />
+        <AdminAvatarPanel />
 
         <section className="rounded-2xl border border-border bg-panel p-4 sm:p-5">
           <h2 className="text-sm font-semibold">Recent sessions</h2>
