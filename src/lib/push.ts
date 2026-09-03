@@ -66,7 +66,14 @@ export async function enablePush(): Promise<PushResult> {
   ).toString();
   const registration = await navigator.serviceWorker.register(
     `/firebase-messaging-sw.js?${query}`,
+    { scope: "/" },
   );
+
+  // Chrome (esp. Android) throws "Subscription failed - no active service worker"
+  // if getToken runs while the worker is still installing. Wait for activation.
+  await waitForActive(registration);
+  await navigator.serviceWorker.ready;
+
   const app = getApps().length
     ? getApp()
     : initializeApp({
@@ -79,6 +86,7 @@ export async function enablePush(): Promise<PushResult> {
     vapidKey,
     serviceWorkerRegistration: registration,
   });
+
   if (!token) return { status: "denied" };
 
   const { data } = await supabase.auth.getUser();
@@ -96,4 +104,22 @@ export async function enablePush(): Promise<PushResult> {
   );
 
   return { status: "registered", token };
+}
+
+/** Resolves once the registration has an activated worker (or times out). */
+async function waitForActive(reg: ServiceWorkerRegistration): Promise<void> {
+  if (reg.active) return;
+  const worker = reg.installing ?? reg.waiting;
+  if (!worker) return;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      worker.removeEventListener("statechange", onChange);
+      resolve();
+    };
+    const onChange = () => {
+      if (worker.state === "activated" || worker.state === "redundant") done();
+    };
+    worker.addEventListener("statechange", onChange);
+    setTimeout(done, 10_000);
+  });
 }
