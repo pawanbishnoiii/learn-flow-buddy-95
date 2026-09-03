@@ -67,7 +67,14 @@ export async function enablePush(): Promise<PushResult> {
   const registration = await navigator.serviceWorker.register(
     `/firebase-messaging-sw.js?${query}`,
   );
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const app = getApps().length
+    ? getApp()
+    : initializeApp({
+        apiKey: firebaseConfig.apiKey,
+        projectId: firebaseConfig.projectId,
+        appId,
+        messagingSenderId: firebaseConfig.messagingSenderId,
+      });
   const token = await getToken(getMessaging(app), {
     vapidKey,
     serviceWorkerRegistration: registration,
