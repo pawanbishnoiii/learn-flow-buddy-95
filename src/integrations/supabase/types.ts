@@ -176,27 +176,63 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          is_global: boolean | null
           kind: string
           month: number | null
           title: string
+          user_id: string | null
         }
         Insert: {
           author?: string | null
           body: string
           created_at?: string
           id?: string
+          is_global?: boolean | null
           kind?: string
           month?: number | null
           title: string
+          user_id?: string | null
         }
         Update: {
           author?: string | null
           body?: string
           created_at?: string
           id?: string
+          is_global?: boolean | null
           kind?: string
           month?: number | null
           title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          kind: string | null
+          read: boolean | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          kind?: string | null
+          read?: boolean | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          kind?: string | null
+          read?: boolean | null
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -205,6 +241,7 @@ export type Database = {
           age: number | null
           avatar_url: string | null
           avg_study_hours: number
+          bio: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -224,6 +261,7 @@ export type Database = {
           age?: number | null
           avatar_url?: string | null
           avg_study_hours?: number
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -243,6 +281,7 @@ export type Database = {
           age?: number | null
           avatar_url?: string | null
           avg_study_hours?: number
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -303,6 +342,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          mood: string | null
+          quality_rating: number | null
+          started_at: string | null
+          subject_id: string | null
+          user_id: string | null
+          xp_earned: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          mood?: string | null
+          quality_rating?: number | null
+          started_at?: string | null
+          subject_id?: string | null
+          user_id?: string | null
+          xp_earned?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          mood?: string | null
+          quality_rating?: number | null
+          started_at?: string | null
+          subject_id?: string | null
+          user_id?: string | null
+          xp_earned?: number | null
+        }
+        Relationships: []
       }
       study_sessions: {
         Row: {
@@ -538,6 +616,33 @@ export type Database = {
           user_id?: string
           week_starts_monday?: boolean
           weekly_goal_hours?: number
+        }
+        Relationships: []
+      }
+      user_xp: {
+        Row: {
+          id: string
+          level: number
+          streak: number
+          total_xp: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          level?: number
+          streak?: number
+          total_xp?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          level?: number
+          streak?: number
+          total_xp?: number
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
