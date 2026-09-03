@@ -105,6 +105,10 @@ function TargetsPage() {
         </div>
       </section>
 
+      <section className="mt-5 px-4">
+        <SubjectsManager />
+      </section>
+
       <section className="mt-5 space-y-3 px-5">
         {(targets.data ?? []).length === 0 && (
           <div className="rounded-2xl border border-border bg-panel p-6 text-center">
